@@ -1,0 +1,13 @@
+**/.idea/
+**/.vs/
+
+**/Thumbs.db
+**/desktop.ini
+**/.DS_Store
+**/*.rar
+
+**/untracked/
+**/backup/
+
+**/__pycache__/
+**/.mayaSwatches/
