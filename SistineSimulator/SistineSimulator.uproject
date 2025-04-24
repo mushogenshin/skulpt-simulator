@@ -33,6 +33,10 @@
 		{
 			"Name": "ScriptableToolsFramework",
 			"Enabled": true
+		},
+		{
+			"Name": "ForceDirectedLayout",
+			"Enabled": true
 		}
 	]
 }
