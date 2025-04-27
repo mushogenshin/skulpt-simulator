@@ -1,0 +1,3 @@
+[submodule "external/ImNodeSoup"]
+	path = external/ImNodeSoup
+	url = https://github.com/Aarkham/ImNodeSoup.git
