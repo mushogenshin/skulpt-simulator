@@ -5,3 +5,6 @@
 	path = external/DearImGui
 	url = git@github.com:mushogenshin/imgui.git
 	branch = hoan/NodeSoup
+[submodule "SistineSimulator/Plugins/EmotionEngine"]
+	path = SistineSimulator/Plugins/EmotionEngine
+	url = https://github.com/josephkirk/EmotionEngine.git
