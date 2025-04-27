@@ -1,3 +1,7 @@
 [submodule "external/ImNodeSoup"]
 	path = external/ImNodeSoup
 	url = https://github.com/Aarkham/ImNodeSoup.git
+[submodule "external/DearImGui"]
+	path = external/DearImGui
+	url = git@github.com:mushogenshin/imgui.git
+	branch = hoan/NodeSoup
