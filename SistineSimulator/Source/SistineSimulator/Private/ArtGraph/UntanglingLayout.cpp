@@ -1,22 +1,22 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "ArtGraph/FruchtermanReingold.h"
+#include "ArtGraph/UntanglingLayout.h"
 
 // Sets default values
-AFruchtermanReingold::AFruchtermanReingold()
+AUntanglingLayout::AUntanglingLayout()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
 // Called when the game starts or when spawned
-void AFruchtermanReingold::BeginPlay()
+void AUntanglingLayout::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
 // Called every frame
-void AFruchtermanReingold::Tick(float DeltaTime)
+void AUntanglingLayout::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }

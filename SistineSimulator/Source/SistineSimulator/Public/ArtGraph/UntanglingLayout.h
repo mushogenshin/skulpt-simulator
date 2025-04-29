@@ -4,22 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "FruchtermanReingold.generated.h"
-
-USTRUCT(BlueprintType)
-struct SISTINESIMULATOR_API FNodeEdge
-{
-	GENERATED_BODY()
-};
+#include "ArtGraph.h"
+#include "UntanglingLayout.generated.h"
 
 UCLASS()
-class SISTINESIMULATOR_API AFruchtermanReingold : public AActor
+class SISTINESIMULATOR_API AUntanglingLayout : public AActor
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	AFruchtermanReingold();
+	AUntanglingLayout();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
 	float KConstant;
