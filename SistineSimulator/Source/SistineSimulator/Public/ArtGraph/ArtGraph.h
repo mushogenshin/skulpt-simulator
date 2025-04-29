@@ -33,11 +33,17 @@ class SISTINESIMULATOR_API UGraphElement : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tag")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Self")
 	FGameplayTag Tag;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Connections")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Content")
 	TArray<FGraphEdge> Edges;
 
+	// Get the adjacency list, where the first element is the node itself and
+	// the rest are its connections
+	TArray<TArray<FGameplayTag>> GetAdjacencyList() const;
+
+private:
+	// Get the edges as pairs of tags
 	TArray<TPair<FGameplayTag, FGameplayTag>> GetEdgesAsTagPairs() const;
 };
