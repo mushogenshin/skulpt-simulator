@@ -46,3 +46,15 @@ void UGraphSubsystem::NotifyElementChanged(UGraphElement *ChangedElement)
 		}
 	}
 }
+
+void UGraphSubsystem::Initialize(FSubsystemCollectionBase &Collection)
+{
+	Super::Initialize(Collection);
+
+	// Log a message to confirm the subsystem is initialized
+	UE_LOG(LogTemp, Warning, TEXT("GraphSubsystem initialized successfully."));
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("GraphSubsystem initialized successfully."));
+	}
+}

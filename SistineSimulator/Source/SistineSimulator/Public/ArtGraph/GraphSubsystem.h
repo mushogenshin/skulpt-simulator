@@ -26,6 +26,9 @@ public:
 	// Notify graphs that reference the given element to update their caches
 	void NotifyElementChanged(UGraphElement *ChangedElement);
 
+	// Override the Initialize method
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
 private:
 	// Map of elements to the graphs that reference them
 	TMap<UGraphElement *, TSet<UGraphElement *>> ElementToGraphsMap;
