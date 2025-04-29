@@ -5,7 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "ArtGraph.generated.h"
 
-class UGraphElement;
+class UArtGraph;
 
 USTRUCT(BlueprintType)
 struct SISTINESIMULATOR_API FGraphEdge
@@ -13,17 +13,17 @@ struct SISTINESIMULATOR_API FGraphEdge
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
-	TObjectPtr<UGraphElement> ElementA;
+	TObjectPtr<UArtGraph> ElementA;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
-	TObjectPtr<UGraphElement> ElementB;
+	TObjectPtr<UArtGraph> ElementB;
 };
 
 /**
  * 
  */
 UCLASS()
-class SISTINESIMULATOR_API UGraphElement : public UDataAsset
+class SISTINESIMULATOR_API UArtGraph : public UDataAsset
 {
 	GENERATED_BODY()
 
