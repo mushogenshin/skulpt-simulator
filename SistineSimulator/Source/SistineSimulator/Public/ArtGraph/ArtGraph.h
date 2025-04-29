@@ -39,22 +39,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Content")
 	TArray<FGraphEdge> Edges;
 
-	// Get the edges as pairs of tags
-	TArray<TPair<FGameplayTag, FGameplayTag>> GetEdgesAsTagPairs() const;
-	
+	// // Get the edges as pairs of tags
+	// TArray<TPair<FGameplayTag, FGameplayTag>> GetEdgesAsTagPairs() const;
+
 	// Get the cached adjacency list
 	TArray<TArray<FGameplayTag>> GetAdjacencyList() const;
-
-protected:
-	// Override PostEditChangeProperty to update the adjacency list when properties change
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-
-private:
-	// Cache for the adjacency list
-	TArray<TArray<FGameplayTag>> CachedAdjacencyList;
 
 	// Helper function to update the cached adjacency list
 	void UpdateAdjacencyList();
 
-};
+	// Get all elements referenced by this graph
+	TArray<UGraphElement *> GetReferencedElements() const;
 
+protected:
+	// Override PostEditChangeProperty to update the adjacency list when properties change
+	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
+
+private:
+	// Cache for the adjacency list
+	TArray<TArray<FGameplayTag>> CachedAdjacencyList;
+};
