@@ -26,7 +26,10 @@ void AUntanglingLayout::BeginPlay()
 				{
 					LogMessage += NodeConnections[i].ToString() + TEXT(", ");
 				}
-				UE_LOG(LogTemp, Log, TEXT("%s"), *LogMessage);
+				if (GEngine)
+				{
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMessage);
+				}
 				// E.g.
 				// LogTemp: Node: Sistine.Sibyl.Delphic -> Sistine.Prophet.Isaah, Sistine.Prophet.Zacheria, 
 				// LogTemp: Node: Sistine.Prophet.Isaah -> Sistine.Sibyl.Delphic, 

@@ -17,7 +17,7 @@ TArray<TPair<FGameplayTag, FGameplayTag>> UGraphElement::GetEdgesAsTagPairs() co
 	return TagPairs;
 }
 
-TArray<TArray<FGameplayTag>> UGraphElement::GetAdjacencyList() const
+void UGraphElement::UpdateAdjacencyList()
 {
 	TMap<FGameplayTag, TSet<FGameplayTag>> AdjacencyMap;
 
@@ -32,14 +32,28 @@ TArray<TArray<FGameplayTag>> UGraphElement::GetAdjacencyList() const
 	}
 
 	// Convert the adjacency map to an array of arrays
-	TArray<TArray<FGameplayTag>> AdjacencyList;
+	CachedAdjacencyList.Empty();
 	for (const auto& Pair : AdjacencyMap)
 	{
 		TArray<FGameplayTag> NodeConnections;
 		NodeConnections.Add(Pair.Key); // Add the node itself
 		NodeConnections.Append(Pair.Value.Array()); // Add all connected nodes
-		AdjacencyList.Add(NodeConnections);
+		CachedAdjacencyList.Add(NodeConnections);
 	}
-
-	return AdjacencyList;
 }
+
+TArray<TArray<FGameplayTag>> UGraphElement::GetAdjacencyList() const
+{
+	return CachedAdjacencyList;
+}
+
+void UGraphElement::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	UE_LOG(LogTemp, Display, TEXT("UGraphElement::PostEditChangeProperty"));
+
+	// Update the cached adjacency list whenever a property changes
+	UpdateAdjacencyList();
+}
+
