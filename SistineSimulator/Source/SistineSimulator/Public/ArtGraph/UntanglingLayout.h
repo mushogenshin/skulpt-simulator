@@ -15,6 +15,9 @@ class SISTINESIMULATOR_API AUntanglingLayout : public AActor
 public:
 	// Sets default values for this actor's properties
 	AUntanglingLayout();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
+	TObjectPtr<UGraphElement> TargetGraph;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
 	float KConstant;
