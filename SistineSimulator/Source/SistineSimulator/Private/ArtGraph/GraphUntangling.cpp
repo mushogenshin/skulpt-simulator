@@ -17,6 +17,14 @@ void AGraphUntangling::OnConstruction(const FTransform &Transform)
 	FindUntangleableActorsWithTag();
 }
 
+void AGraphUntangling::RefreshUntangleableActors()
+{
+	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::RefreshUntangleableActors: Manually refreshing UntangleableObjects."));
+	// Force refresh by clearing LastConstructedTargetGraph first to bypass the early return check
+	LastConstructedTargetGraph = nullptr;
+	FindUntangleableActorsWithTag();
+}
+
 // Called when the game starts or when spawned
 void AGraphUntangling::BeginPlay()
 {

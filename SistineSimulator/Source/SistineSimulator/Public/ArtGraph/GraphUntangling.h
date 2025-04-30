@@ -21,7 +21,7 @@ public:
 	TObjectPtr<UGraphElement> TargetGraph;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph", meta = (ToolTip = "Additional tags to filter actors by. Actors must have the primary tag from the graph AND all of these secondary tags."))
-	FGameplayTagContainer SecondaryTags; 
+	FGameplayTagContainer SecondaryTags;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
 	float KConstant;
@@ -29,6 +29,10 @@ public:
 	// Array of arrays of objects that implement the Untangleable interface, structured like an adjacency list.
 	// The first element of each inner array corresponds to a node, and the rest are its neighbors.
 	TArray<TArray<TScriptInterface<IUntangleable>>> UntangleableObjects;
+
+	// Function to manually refresh the UntangleableObjects list
+	UFUNCTION(CallInEditor, Category = "ArtGraph", meta = (DisplayName = "Refresh Untangleable Actors"))
+	void RefreshUntangleableActors();
 
 protected:
 	// Called when the game starts or when spawned
