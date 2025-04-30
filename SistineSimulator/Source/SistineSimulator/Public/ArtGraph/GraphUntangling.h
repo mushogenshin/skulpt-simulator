@@ -32,7 +32,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	// Called when the actor is constructed or properties are changed in the editor
-	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void OnConstruction(const FTransform &Transform) override;
 
 private:
 	// Stores the TargetGraph used in the last successful OnConstruction run
@@ -45,8 +45,9 @@ private:
 	uint32 CurrentIter;
 	uint32 MaxIter;
 
+	void FindUntangleableActorsWithTag();
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 };
-

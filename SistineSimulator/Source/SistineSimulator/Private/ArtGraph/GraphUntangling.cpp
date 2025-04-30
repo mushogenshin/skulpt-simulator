@@ -11,6 +11,12 @@ AGraphUntangling::AGraphUntangling()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
+void AGraphUntangling::OnConstruction(const FTransform &Transform)
+{
+	Super::OnConstruction(Transform);
+	FindUntangleableActorsWithTag();
+}
+
 // Called when the game starts or when spawned
 void AGraphUntangling::BeginPlay()
 {
@@ -21,10 +27,14 @@ void AGraphUntangling::BeginPlay()
 	// OnConstruction(GetActorTransform());
 }
 
-void AGraphUntangling::OnConstruction(const FTransform &Transform)
+// Called every frame
+void AGraphUntangling::Tick(float DeltaTime)
 {
-	Super::OnConstruction(Transform);
+	Super::Tick(DeltaTime);
+}
 
+void AGraphUntangling::FindUntangleableActorsWithTag()
+{
 	// If TargetGraph is not set, clear the list and the last constructed graph reference.
 	if (!TargetGraph)
 	{
@@ -135,10 +145,4 @@ void AGraphUntangling::OnConstruction(const FTransform &Transform)
 		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::OnConstruction: Finished constructing UntangleableObjects for graph %s, but some actors were missing."), *TargetGraph->GetName());
 		// Keep LastConstructedTargetGraph null to allow reconstruction attempt on next run
 	}
-}
-
-// Called every frame
-void AGraphUntangling::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
