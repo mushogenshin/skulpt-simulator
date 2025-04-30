@@ -94,7 +94,7 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 		// Use Execute_* functions to interact with the interface
 		if (Actor->GetClass()->ImplementsInterface(UUntangleable::StaticClass()))
 		{
-			FString ActorName = IUntangleable::Execute_GetName(Actor);
+			FString ActorName = Actor->GetName(); // Use Actor's name directly
 			FGameplayTag ActorTag = IUntangleable::Execute_GetTag(Actor);
 			if (!ActorTag.IsValid())
 			{
@@ -171,8 +171,8 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 	{
 		if (NodeConnections.Num() > 0 && NodeConnections[0].GetObject())
 		{
-			// Use the interface function to get the name of the first element (the node itself)
-			FString KeyName = IUntangleable::Execute_GetName(NodeConnections[0].GetObject());
+			// Use the object's name directly
+			FString KeyName = NodeConnections[0].GetObject()->GetName();
 			DebugUntangleableObjects += FString::Printf(TEXT("%s -> ["), *KeyName);
 
 			// Start from index 1 to get neighbors
@@ -180,8 +180,8 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 			{
 				if (NodeConnections[i].GetObject())
 				{
-					// Use the interface function to get the name of the neighbor
-					FString NeighborName = IUntangleable::Execute_GetName(NodeConnections[i].GetObject());
+					// Use the neighbor object's name directly
+					FString NeighborName = NodeConnections[i].GetObject()->GetName();
 					DebugUntangleableObjects += NeighborName;
 				}
 				else
@@ -208,3 +208,4 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 		}
 	}
 }
+

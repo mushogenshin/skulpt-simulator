@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "GameplayTagContainer.h" // Include for FGameplayTag
+#include "GameplayTagContainer.h" // Include for FGameplayTagContainer
 #include "Untangleable.generated.h"
 
 // This class does not need to be modified.
@@ -29,12 +29,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Untangleable")
 	void SetLocation(const FVector& NewLocation);
 
-	/** Returns the Gameplay Tag associated with this object. */
+	/** Returns the Gameplay Tags associated with this object. */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Untangleable")
-	FGameplayTag GetTag() const;
-
-	/** Returns the name of the object. */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Untangleable")
-	FString GetName() const;
+	FGameplayTagContainer GetTags() const; // Changed from GetTag to GetTags
 };
-

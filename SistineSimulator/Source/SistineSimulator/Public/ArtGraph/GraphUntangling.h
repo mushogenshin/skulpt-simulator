@@ -20,6 +20,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
 	TObjectPtr<UGraphElement> TargetGraph;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph", meta = (ToolTip = "An additional tag to filter actors by, combined with the TargetGraph's primary tag."))
+	FGameplayTag SecondaryTag;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
 	float KConstant;
 
