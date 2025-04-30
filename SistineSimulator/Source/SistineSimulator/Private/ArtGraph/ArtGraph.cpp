@@ -13,12 +13,6 @@ void UGraphElement::UpdateAdjacencyList()
 	UE_LOG(LogTemp, Display, TEXT("Updating adjacency list for graph %s"), *GetName());
 	TMap<FGameplayTag, TSet<FGameplayTag>> AdjacencyMap;
 
-	// Add self to the map to ensure it appears even if it has no edges
-	if (Tag.IsValid())
-	{
-		AdjacencyMap.FindOrAdd(Tag);
-	}
-
 	for (const FGraphEdge &Edge : Edges)
 	{
 		if (Edge.ElementA && Edge.ElementA->Tag.IsValid() && Edge.ElementB && Edge.ElementB->Tag.IsValid())
@@ -34,17 +28,16 @@ void UGraphElement::UpdateAdjacencyList()
 	DebugAdjacencyList.Empty(); // Clear the debug string
 	TArray<FGameplayTag> MapKeys;
 	AdjacencyMap.GetKeys(MapKeys);
-	MapKeys.Sort([](const FGameplayTag& A, const FGameplayTag& B) { // Sort for consistent debug output
+	MapKeys.Sort([](const FGameplayTag &A, const FGameplayTag &B) { // Sort for consistent debug output
 		return A.ToString() < B.ToString();
 	});
 
-
-	for (const FGameplayTag& Key : MapKeys)
+	for (const FGameplayTag &Key : MapKeys)
 	{
 		TArray<FGameplayTag> NodeConnections;
-		NodeConnections.Add(Key);				// Add the node itself
+		NodeConnections.Add(Key); // Add the node itself
 		TArray<FGameplayTag> Neighbors = AdjacencyMap[Key].Array();
-		Neighbors.Sort([](const FGameplayTag& A, const FGameplayTag& B) { // Sort neighbors for consistent debug output
+		Neighbors.Sort([](const FGameplayTag &A, const FGameplayTag &B) { // Sort neighbors for consistent debug output
 			return A.ToString() < B.ToString();
 		});
 		NodeConnections.Append(Neighbors); // Add all connected nodes
@@ -59,8 +52,8 @@ void UGraphElement::UpdateAdjacencyList()
 			{
 				DebugAdjacencyList += TEXT(", ");
 			}
+			DebugAdjacencyList += TEXT("]\n");
 		}
-		DebugAdjacencyList += TEXT("]\n");
 	}
 }
 
@@ -101,4 +94,3 @@ void UGraphElement::PostEditChangeProperty(FPropertyChangedEvent &PropertyChange
 		Subsystem->NotifyElementChanged(this);
 	}
 }
-
