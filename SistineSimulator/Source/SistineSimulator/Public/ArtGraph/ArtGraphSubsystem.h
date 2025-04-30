@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/EngineSubsystem.h" // Changed from GameInstanceSubsystem to EngineSubsystem
 #include "GameplayTagContainer.h"
-#include "GraphSubsystem.generated.h"
+#include "ArtGraphSubsystem.generated.h"
 
 class UGraphElement;
 class UArtGraph;
@@ -12,7 +12,7 @@ class UArtGraph;
  * A subsystem to manage and notify graphs when their elements change.
  */
 UCLASS()
-class SISTINESIMULATOR_API UGraphSubsystem : public UEngineSubsystem
+class SISTINESIMULATOR_API UArtGraphSubsystem : public UEngineSubsystem
 {
 	GENERATED_BODY()
 
@@ -26,8 +26,7 @@ public:
 	// Notify graphs that reference the given element to update their caches
 	void NotifyElementChanged(UGraphElement *ChangedElement);
 
-	// Override the Initialize method
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Initialize(FSubsystemCollectionBase &Collection) override;
 
 private:
 	// Map of elements to the graphs that reference them

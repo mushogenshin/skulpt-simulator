@@ -1,7 +1,7 @@
-#include "ArtGraph/GraphSubsystem.h"
+#include "ArtGraph/ArtGraphSubsystem.h"
 #include "ArtGraph/ArtGraph.h"
 
-void UGraphSubsystem::RegisterGraph(UGraphElement *Graph)
+void UArtGraphSubsystem::RegisterGraph(UGraphElement *Graph)
 {
 	if (!Graph)
 		return;
@@ -12,7 +12,7 @@ void UGraphSubsystem::RegisterGraph(UGraphElement *Graph)
 	}
 }
 
-void UGraphSubsystem::UnregisterGraph(UGraphElement *Graph)
+void UArtGraphSubsystem::UnregisterGraph(UGraphElement *Graph)
 {
 	if (!Graph)
 		return;
@@ -30,7 +30,7 @@ void UGraphSubsystem::UnregisterGraph(UGraphElement *Graph)
 	}
 }
 
-void UGraphSubsystem::NotifyElementChanged(UGraphElement *ChangedElement)
+void UArtGraphSubsystem::NotifyElementChanged(UGraphElement *ChangedElement)
 {
 	if (!ChangedElement)
 		return;
@@ -47,7 +47,7 @@ void UGraphSubsystem::NotifyElementChanged(UGraphElement *ChangedElement)
 	}
 }
 
-void UGraphSubsystem::Initialize(FSubsystemCollectionBase &Collection)
+void UArtGraphSubsystem::Initialize(FSubsystemCollectionBase &Collection)
 {
 	Super::Initialize(Collection);
 
