@@ -40,7 +40,6 @@ void AGraphUntangling::OnConstruction(const FTransform &Transform)
 	// If the current TargetGraph is the same as the one used last time, skip reconstruction.
 	if (TargetGraph == LastConstructedTargetGraph)
 	{
-		// UE_LOG(LogTemp, Verbose, TEXT("AGraphUntangling::OnConstruction: TargetGraph (%s) has not changed. Skipping reconstruction."), *TargetGraph->GetName());
 		return;
 	}
 
@@ -68,26 +67,35 @@ void AGraphUntangling::OnConstruction(const FTransform &Transform)
 		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::OnConstruction: No actors implementing Untangleable interface found in the level."));
 		return; // Keep LastConstructedTargetGraph null
 	}
-	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::OnConstruction: Found %d actors implementing Untangleable interface."), FoundActors.Num());
+	// UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::OnConstruction: Found %d actors implementing Untangleable interface."), FoundActors.Num());
 
 	// Create a map for quick lookup of actors by their tag
 	TMap<FGameplayTag, TScriptInterface<IUntangleable>> TagToActorMap;
 	for (AActor *Actor : FoundActors)
 	{
-		TScriptInterface<IUntangleable> UntangleableActor(Actor);
-		if (UntangleableActor)
+		if (!Actor)
 		{
-			// Use the interface function directly
+			UE_LOG(LogTemp, Warning, TEXT("Null actor found in FoundActors array"));
+			continue;
+		}
+
+		// Use Execute_* functions to interact with the interface
+		if (Actor->GetClass()->ImplementsInterface(UUntangleable::StaticClass()))
+		{
 			FGameplayTag ActorTag = IUntangleable::Execute_GetTag(Actor);
-			if (ActorTag.IsValid())
+			if (!ActorTag.IsValid())
 			{
-				TagToActorMap.Add(ActorTag, UntangleableActor);
-				UE_LOG(LogTemp, Verbose, TEXT("Found Untangleable Actor: %s with Tag: %s"), *Actor->GetName(), *ActorTag.ToString());
+				// UE_LOG(LogTemp, Warning, TEXT("Untangleable Actor %s has an invalid tag"), *Actor->GetName());
+				continue;
 			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Untangleable Actor %s has an invalid tag."), *Actor->GetName());
-			}
+
+			// Create the TScriptInterface manually
+			TScriptInterface<IUntangleable> UntangleableActor;
+			UntangleableActor.SetObject(Actor);
+			UntangleableActor.SetInterface(Cast<IUntangleable>(Actor)); // This cast is safe because we checked ImplementsInterface
+
+			TagToActorMap.Add(ActorTag, UntangleableActor);
+			UE_LOG(LogTemp, Log, TEXT("Added Untangleable Actor: %s with Tag: %s"), *Actor->GetName(), *ActorTag.ToString());
 		}
 	}
 
@@ -109,8 +117,8 @@ void AGraphUntangling::OnConstruction(const FTransform &Transform)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::OnConstruction: Could not find an actor with tag %s required by TargetGraph %s."), *Tag.ToString(), *TargetGraph->GetName());
 				bConstructionSuccessful = false; // Mark as potentially incomplete
-				// Optionally add a null entry or skip, depending on desired behavior
-				// InnerArray.Add(nullptr);
+												 // Optionally add a null entry or skip, depending on desired behavior
+												 // InnerArray.Add(nullptr);
 			}
 		}
 		UntangleableObjects.Add(InnerArray);
@@ -134,4 +142,3 @@ void AGraphUntangling::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-
