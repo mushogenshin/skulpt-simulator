@@ -13,9 +13,15 @@ void UGraphElement::UpdateAdjacencyList()
 	UE_LOG(LogTemp, Display, TEXT("Updating adjacency list for graph %s"), *GetName());
 	TMap<FGameplayTag, TSet<FGameplayTag>> AdjacencyMap;
 
+	// Add self to the map to ensure it appears even if it has no edges
+	if (Tag.IsValid())
+	{
+		AdjacencyMap.FindOrAdd(Tag);
+	}
+
 	for (const FGraphEdge &Edge : Edges)
 	{
-		if (Edge.ElementA && Edge.ElementB)
+		if (Edge.ElementA && Edge.ElementA->Tag.IsValid() && Edge.ElementB && Edge.ElementB->Tag.IsValid())
 		{
 			// Add connections in both directions
 			AdjacencyMap.FindOrAdd(Edge.ElementA->Tag).Add(Edge.ElementB->Tag);
@@ -25,12 +31,36 @@ void UGraphElement::UpdateAdjacencyList()
 
 	// Convert the adjacency map to an array of arrays
 	CachedAdjacencyList.Empty();
-	for (const auto &Pair : AdjacencyMap)
+	DebugAdjacencyList.Empty(); // Clear the debug string
+	TArray<FGameplayTag> MapKeys;
+	AdjacencyMap.GetKeys(MapKeys);
+	MapKeys.Sort([](const FGameplayTag& A, const FGameplayTag& B) { // Sort for consistent debug output
+		return A.ToString() < B.ToString();
+	});
+
+
+	for (const FGameplayTag& Key : MapKeys)
 	{
 		TArray<FGameplayTag> NodeConnections;
-		NodeConnections.Add(Pair.Key);				// Add the node itself
-		NodeConnections.Append(Pair.Value.Array()); // Add all connected nodes
+		NodeConnections.Add(Key);				// Add the node itself
+		TArray<FGameplayTag> Neighbors = AdjacencyMap[Key].Array();
+		Neighbors.Sort([](const FGameplayTag& A, const FGameplayTag& B) { // Sort neighbors for consistent debug output
+			return A.ToString() < B.ToString();
+		});
+		NodeConnections.Append(Neighbors); // Add all connected nodes
 		CachedAdjacencyList.Add(NodeConnections);
+
+		// Update the debug string
+		DebugAdjacencyList += FString::Printf(TEXT("%s -> ["), *Key.ToString());
+		for (int32 i = 0; i < Neighbors.Num(); ++i)
+		{
+			DebugAdjacencyList += Neighbors[i].ToString();
+			if (i < Neighbors.Num() - 1)
+			{
+				DebugAdjacencyList += TEXT(", ");
+			}
+		}
+		DebugAdjacencyList += TEXT("]\n");
 	}
 }
 

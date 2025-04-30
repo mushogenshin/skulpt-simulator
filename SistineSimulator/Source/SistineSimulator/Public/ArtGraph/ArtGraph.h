@@ -55,4 +55,8 @@ protected:
 private:
 	// Cache for the adjacency list
 	TArray<TArray<FGameplayTag>> CachedAdjacencyList;
+
+	// Debug property to display the cached adjacency list in the editor
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", MultiLine = true))
+	FString DebugAdjacencyList;
 };
