@@ -14,12 +14,12 @@ void UArtGraphSubsystem::RegisterGraph(UGraphElement *Graph, bool bClearPrevious
 		UnregisterGraph(Graph);
 	}
 
-	UE_LOG(LogEngine, Display, TEXT("Registering ArtGraph %s (ClearPrevious: %s)"), *Graph->GetName(), bClearPreviousReferences ? TEXT("True") : TEXT("False"));
+	UE_LOG(LogEngine, Display, TEXT("Registering ArtGraph %s"), *Graph->GetName());
 	for (UGraphElement *Element : Graph->GetReferencedElements())
 	{
 		if (Element) // Ensure the element is valid
 		{
-			ElementToGraphsMap.FindOrAdd(Element).Add(Graph);
+			ElementToDependentGraphsMap.FindOrAdd(Element).Add(Graph);
 		}
 	}
 
@@ -45,7 +45,7 @@ void UArtGraphSubsystem::UnregisterGraph(UGraphElement *Graph)
 	UE_LOG(LogEngine, Display, TEXT("Unregistering ArtGraph %s"), *Graph->GetName());
 
 	// Iterate through the entire map to find and remove the graph
-	for (auto It = ElementToGraphsMap.CreateIterator(); It; ++It)
+	for (auto It = ElementToDependentGraphsMap.CreateIterator(); It; ++It)
 	{
 		UGraphElement *Element = It.Key();
 		TSet<UGraphElement *> &Graphs = It.Value();
@@ -68,7 +68,7 @@ void UArtGraphSubsystem::NotifyElementChanged(UGraphElement *ChangedElement)
 	if (!ChangedElement)
 		return;
 
-	if (TSet<UGraphElement *> *Graphs = ElementToGraphsMap.Find(ChangedElement))
+	if (TSet<UGraphElement *> *Graphs = ElementToDependentGraphsMap.Find(ChangedElement))
 	{
 		for (UGraphElement *Graph : *Graphs)
 		{

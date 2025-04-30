@@ -32,5 +32,5 @@ public:
 
 private:
 	// Map of elements to the graphs that reference them
-	TMap<UGraphElement *, TSet<UGraphElement *>> ElementToGraphsMap;
+	TMap<UGraphElement *, TSet<UGraphElement *>> ElementToDependentGraphsMap;
 };
