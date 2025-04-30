@@ -14,7 +14,7 @@ AGraphUntangling::AGraphUntangling()
 void AGraphUntangling::OnConstruction(const FTransform &Transform)
 {
 	Super::OnConstruction(Transform);
-	MakeAdjacencyListFromTags();
+	FindUntangleableActorsWithTag();
 }
 
 // Called when the game starts or when spawned
@@ -33,7 +33,7 @@ void AGraphUntangling::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AGraphUntangling::MakeAdjacencyListFromTags()
+void AGraphUntangling::FindUntangleableActorsWithTag()
 {
 	// If TargetGraph is not set, clear the list and the last constructed graph reference.
 	if (!TargetGraph)
@@ -41,8 +41,8 @@ void AGraphUntangling::MakeAdjacencyListFromTags()
 		if (LastConstructedTargetGraph != nullptr) // Only clear if it was previously set
 		{
 			UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: TargetGraph is null. Clearing UntangleableObjects."));
-			AdjacencyList.Empty();
-			DebugAdjacencyList.Empty(); // Clear debug string
+			UntangleableObjects.Empty();
+			DebugUntangleableObjects.Empty(); // Clear debug string
 			LastConstructedTargetGraph = nullptr;
 		}
 		return;
@@ -58,8 +58,8 @@ void AGraphUntangling::MakeAdjacencyListFromTags()
 
 	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: TargetGraph (%s) or SecondaryTags changed, or first run. Reconstructing UntangleableObjects."), *TargetGraph->GetName());
 
-	AdjacencyList.Empty();
-	DebugAdjacencyList.Empty();			  // Clear debug string initially
+	UntangleableObjects.Empty();
+	DebugUntangleableObjects.Empty();	  // Clear debug string initially
 	LastConstructedTargetGraph = nullptr; // Clear last graph in case construction fails below
 
 	// Ensure the graph's adjacency list is up-to-date
@@ -84,7 +84,7 @@ void AGraphUntangling::MakeAdjacencyListFromTags()
 	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Found %d actors implementing Untangleable interface."), FoundActors.Num());
 
 	bool bConstructionSuccessful = true; // Track if construction completes without missing actors
-	AdjacencyList.Reserve(AdjacencyList.Num());
+	UntangleableObjects.Reserve(AdjacencyList.Num());
 
 	// Iterate through the desired graph structure (Adjacency List)
 	for (const TArray<FGameplayTag> &NodeConnections : AdjacencyList)
@@ -142,15 +142,16 @@ void AGraphUntangling::MakeAdjacencyListFromTags()
 			}
 		} // End loop through NodeConnections (tags)
 
-		AdjacencyList.Add(InnerArray);
-	}
+		UntangleableObjects.Add(InnerArray);
+	} // End loop through AdjacencyList
+	// --- End Refactored Logic ---
 
 	// Always format the debug string, even if construction was incomplete
-	FormatDebugAdjacenctyList();
+	FormatDebugUntangleableObjects();
 
 	if (bConstructionSuccessful)
 	{
-		UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Successfully constructed UntangleableObjects with %d nodes for graph %s."), AdjacencyList.Num(), *TargetGraph->GetName());
+		UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Successfully constructed UntangleableObjects with %d nodes for graph %s."), UntangleableObjects.Num(), *TargetGraph->GetName());
 		// Update the last constructed graph reference only on successful completion
 		LastConstructedTargetGraph = TargetGraph;
 	}
@@ -161,11 +162,11 @@ void AGraphUntangling::MakeAdjacencyListFromTags()
 	}
 }
 
-void AGraphUntangling::FormatDebugAdjacenctyList()
+void AGraphUntangling::FormatDebugUntangleableObjects()
 {
-	DebugAdjacencyList.Empty(); // Clear the debug string
+	DebugUntangleableObjects.Empty(); // Clear the debug string
 
-	for (const TArray<TScriptInterface<IUntangleable>> &NodeConnections : AdjacencyList)
+	for (const TArray<TScriptInterface<IUntangleable>> &NodeConnections : UntangleableObjects)
 	{
 		FString KeyName = TEXT("INVALID_NODE"); // Default if node is missing/invalid
 		if (NodeConnections.Num() > 0)
@@ -180,7 +181,7 @@ void AGraphUntangling::FormatDebugAdjacenctyList()
 				KeyName = TEXT("NULL_NODE"); // Node entry exists but is null
 			}
 
-			DebugAdjacencyList += FString::Printf(TEXT("%s -> ["), *KeyName);
+			DebugUntangleableObjects += FString::Printf(TEXT("%s -> ["), *KeyName);
 
 			// Start from index 1 to get neighbors
 			for (int32 i = 1; i < NodeConnections.Num(); ++i)
@@ -189,30 +190,31 @@ void AGraphUntangling::FormatDebugAdjacenctyList()
 				{
 					// Use the neighbor object's name directly
 					FString NeighborName = NodeConnections[i].GetObject()->GetName();
-					DebugAdjacencyList += NeighborName;
+					DebugUntangleableObjects += NeighborName;
 				}
 				else
 				{
-					DebugAdjacencyList += TEXT("NULL"); // Handle null neighbor entries
+					DebugUntangleableObjects += TEXT("NULL"); // Handle null neighbor entries
 				}
 
 				if (i < NodeConnections.Num() - 1)
 				{
-					DebugAdjacencyList += TEXT(", ");
+					DebugUntangleableObjects += TEXT(", ");
 				}
 			}
-			DebugAdjacencyList += TEXT("]");
+			DebugUntangleableObjects += TEXT("]");
 		}
 		else
 		{
 			// Handle case where the inner array itself is empty (shouldn't happen with current logic but good practice)
-			DebugAdjacencyList += TEXT("EMPTY_NODE_ARRAY");
+			DebugUntangleableObjects += TEXT("EMPTY_NODE_ARRAY");
 		}
 
 		// Add newline for readability, check if it's not the last element
-		if (&NodeConnections != &AdjacencyList.Last())
+		if (&NodeConnections != &UntangleableObjects.Last())
 		{
-			DebugAdjacencyList += TEXT("\n\n");
+			DebugUntangleableObjects += TEXT("\n\n");
 		}
 	}
 }
+
