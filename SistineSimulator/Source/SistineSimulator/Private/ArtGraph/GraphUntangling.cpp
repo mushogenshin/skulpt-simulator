@@ -107,6 +107,12 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 			UntangleableActor.SetObject(Actor);
 			UntangleableActor.SetInterface(Cast<IUntangleable>(Actor)); // This cast is safe because we checked ImplementsInterface
 
+			// TODO: avoid overwriting existing entries?
+			if (TagToActorMap.Contains(ActorTag))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Duplicate tag detected. Actor %s with Tag %s is overwriting an existing entry."), *ActorName, *ActorTag.ToString());
+			}
+
 			TagToActorMap.Add(ActorTag, UntangleableActor);
 			UE_LOG(LogTemp, Log, TEXT("Added Untangleable Actor: %s with Tag: %s"), *ActorName, *ActorTag.ToString());
 		}
