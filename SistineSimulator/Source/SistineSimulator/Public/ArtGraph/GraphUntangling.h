@@ -5,22 +5,27 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ArtGraph.h"
-#include "UntanglingLayout.generated.h"
+#include "Untangleable.h" // Include the new interface header
+#include "GraphUntangling.generated.h"
 
 UCLASS()
-class SISTINESIMULATOR_API AUntanglingLayout : public AActor
+class SISTINESIMULATOR_API AGraphUntangling : public AActor
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	AUntanglingLayout();
-	
+	AGraphUntangling();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
 	TObjectPtr<UGraphElement> TargetGraph;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
 	float KConstant;
+
+	// Array of objects that implement the Untangleable interface and are part of the layout
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArtGraph")
+	TArray<TScriptInterface<IUntangleable>> UntangleableObjects;
 
 protected:
 	// Called when the game starts or when spawned
@@ -37,3 +42,4 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 };
+
