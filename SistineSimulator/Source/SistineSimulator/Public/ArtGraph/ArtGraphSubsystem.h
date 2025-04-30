@@ -18,7 +18,9 @@ class SISTINESIMULATOR_API UArtGraphSubsystem : public UEngineSubsystem
 
 public:
 	// Register a graph with the subsystem
-	void RegisterGraph(UGraphElement *Graph);
+	// @param Graph The graph element to register.
+	// @param bClearPreviousReferences If true, unregister the graph from any elements it previously referenced before registering new ones.
+	void RegisterGraph(UGraphElement *Graph, bool bClearPreviousReferences = true);
 
 	// Unregister a graph from the subsystem
 	void UnregisterGraph(UGraphElement *Graph);

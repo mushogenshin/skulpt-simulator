@@ -3,33 +3,38 @@
 #include "AssetRegistry/AssetRegistryModule.h" // Include Asset Registry header
 #include "Engine/AssetManager.h" // Include for UAssetManager
 
-void UArtGraphSubsystem::RegisterGraph(UGraphElement *Graph)
+void UArtGraphSubsystem::RegisterGraph(UGraphElement *Graph, bool bClearPreviousReferences)
 {
 	if (!Graph)
 		return;
 
-	// Unregister the graph from all previously referenced elements
-	// to avoid phantom mapping
-	UnregisterGraph(Graph);
+	// Optionally unregister the graph from all previously referenced elements
+	if (bClearPreviousReferences)
+	{
+		UnregisterGraph(Graph);
+	}
 
-	UE_LOG(LogEngine, Display, TEXT("Registering ArtGraph %s"), *Graph->GetName());
+	UE_LOG(LogEngine, Display, TEXT("Registering ArtGraph %s (ClearPrevious: %s)"), *Graph->GetName(), bClearPreviousReferences ? TEXT("True") : TEXT("False"));
 	for (UGraphElement *Element : Graph->GetReferencedElements())
 	{
-		ElementToGraphsMap.FindOrAdd(Element).Add(Graph);
+		if (Element) // Ensure the element is valid
+		{
+			ElementToGraphsMap.FindOrAdd(Element).Add(Graph);
+		}
 	}
 
-	// Log the current content of ElementToGraphsMap
-	UE_LOG(LogEngine, Display, TEXT("Current ElementToGraphsMap content:"));
-	for (const auto &Pair : ElementToGraphsMap)
-	{
-		FString ElementName = Pair.Key ? Pair.Key->GetName() : TEXT("Unknown");
-		FString GraphNames;
-		for (const UGraphElement *Graph : Pair.Value)
-		{
-			GraphNames += Graph ? Graph->GetName() + TEXT(", ") : TEXT("Unknown, ");
-		}
-		UE_LOG(LogEngine, Display, TEXT("Element: %s -> Graphs: %s"), *ElementName, *GraphNames);
-	}
+	// // Log the current content of ElementToGraphsMap
+	// UE_LOG(LogEngine, Display, TEXT("Current ElementToGraphsMap content:"));
+	// for (const auto &Pair : ElementToGraphsMap)
+	// {
+	// 	FString ElementName = Pair.Key ? Pair.Key->GetName() : TEXT("Unknown");
+	// 	FString GraphNames;
+	// 	for (const UGraphElement *Graph : Pair.Value)
+	// 	{
+	// 		GraphNames += Graph ? Graph->GetName() + TEXT(", ") : TEXT("Unknown, ");
+	// 	}
+	// 	UE_LOG(LogEngine, Display, TEXT("Element: %s -> Graphs: %s"), *ElementName, *GraphNames);
+	// }
 }
 
 void UArtGraphSubsystem::UnregisterGraph(UGraphElement *Graph)
@@ -98,7 +103,9 @@ void UArtGraphSubsystem::Initialize(FSubsystemCollectionBase &Collection)
 		{
 			// Ensure the asset is fully loaded before accessing properties like ReferencedElements
 			GraphElement->ConditionalPostLoad();
-			RegisterGraph(GraphElement);
+			// Register without clearing previous references during initialization,
+			// as the map is empty initially.
+			RegisterGraph(GraphElement, false);
 		}
 		else
 		{

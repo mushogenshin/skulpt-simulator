@@ -62,10 +62,13 @@ void UGraphElement::PostEditChangeProperty(FPropertyChangedEvent &PropertyChange
 
 	if (UArtGraphSubsystem *Subsystem = GEngine->GetEngineSubsystem<UArtGraphSubsystem>())
 	{
-		// Register this graph and all of its referenced graphs with the subsystem
-		Subsystem->RegisterGraph(this);
+		// Register this graph and all of its referenced graphs with the subsystem.
+		// Pass true to clear previous references since the graph's references might have changed.
+		Subsystem->RegisterGraph(this, true);
 
-		// Notify the subsystem
+		// Notify the subsystem that this element might have changed,
+		// affecting graphs that reference it.
 		Subsystem->NotifyElementChanged(this);
 	}
 }
+
