@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Subsystems/EngineSubsystem.h" // Changed from GameInstanceSubsystem to EngineSubsystem
+#include "Subsystems/EngineSubsystem.h"
 #include "GameplayTagContainer.h"
 #include "ArtGraphSubsystem.generated.h"
 

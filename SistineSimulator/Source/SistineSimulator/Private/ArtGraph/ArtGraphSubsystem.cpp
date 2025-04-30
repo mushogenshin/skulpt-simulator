@@ -1,7 +1,7 @@
 #include "ArtGraph/ArtGraphSubsystem.h"
 #include "ArtGraph/ArtGraph.h"
-#include "AssetRegistry/AssetRegistryModule.h" // Include Asset Registry header
-#include "Engine/AssetManager.h"			   // Include for UAssetManager
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "Engine/AssetManager.h"
 
 void UArtGraphSubsystem::RegisterGraph(UGraphElement *Graph, bool bClearPreviousReferences)
 {
