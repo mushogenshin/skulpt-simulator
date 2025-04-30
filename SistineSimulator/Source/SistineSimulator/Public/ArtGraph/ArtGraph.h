@@ -39,9 +39,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Content")
 	TArray<FGraphEdge> Edges;
 
-	// // Get the edges as pairs of tags
-	// TArray<TPair<FGameplayTag, FGameplayTag>> GetEdgesAsTagPairs() const;
-
 	// Get the cached adjacency list
 	TArray<TArray<FGameplayTag>> GetAdjacencyList() const;
 

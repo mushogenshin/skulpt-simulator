@@ -3,21 +3,6 @@
 #include "ArtGraph/ArtGraph.h"
 #include "ArtGraph/ArtGraphSubsystem.h"
 
-// TArray<TPair<FGameplayTag, FGameplayTag>> UGraphElement::GetEdgesAsTagPairs() const
-// {
-// 	TArray<TPair<FGameplayTag, FGameplayTag>> TagPairs;
-
-// 	for (const FGraphEdge &Edge : Edges)
-// 	{
-// 		if (Edge.ElementA && Edge.ElementB)
-// 		{
-// 			TagPairs.Add(TPair<FGameplayTag, FGameplayTag>(Edge.ElementA->Tag, Edge.ElementB->Tag));
-// 		}
-// 	}
-
-// 	return TagPairs;
-// }
-
 TArray<TArray<FGameplayTag>> UGraphElement::GetAdjacencyList() const
 {
 	return CachedAdjacencyList;
@@ -25,6 +10,7 @@ TArray<TArray<FGameplayTag>> UGraphElement::GetAdjacencyList() const
 
 void UGraphElement::UpdateAdjacencyList()
 {
+	UE_LOG(LogTemp, Display, TEXT("Updating adjacency list for graph %s"), *GetName());
 	TMap<FGameplayTag, TSet<FGameplayTag>> AdjacencyMap;
 
 	for (const FGraphEdge &Edge : Edges)
@@ -63,7 +49,7 @@ TArray<UGraphElement *> UGraphElement::GetReferencedElements() const
 			ReferencedElements.AddUnique(Edge.ElementB);
 		}
 	}
-	
+
 	return ReferencedElements;
 }
 
