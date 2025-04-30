@@ -48,14 +48,15 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 		return;
 	}
 
-	// If the current TargetGraph and SecondaryTag are the same as the ones used last time, skip reconstruction.
-	// Note: This simple check might not catch all cases if SecondaryTag changes but TargetGraph doesn't.
+	// If the current TargetGraph and SecondaryTags are the same as the ones used last time, skip reconstruction.
+	// Note: This simple check might not catch all cases if SecondaryTags changes but TargetGraph doesn't.
+	// A more robust check would involve comparing SecondaryTags as well.
 	if (TargetGraph == LastConstructedTargetGraph)
 	{
 		return;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: TargetGraph (%s) or SecondaryTag changed, or first run. Reconstructing UntangleableObjects."), *TargetGraph->GetName());
+	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: TargetGraph (%s) or SecondaryTags changed, or first run. Reconstructing UntangleableObjects."), *TargetGraph->GetName());
 
 	UntangleableObjects.Empty();
 	DebugUntangleableObjects.Empty();	  // Clear debug string initially
@@ -100,13 +101,10 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 				continue;
 			}
 
-			// Define the required tags for the actor: the primary tag from the graph + the secondary tag
+			// Define the required tags for the actor: the primary tag from the graph + ALL secondary tags
 			FGameplayTagContainer RequiredTags;
 			RequiredTags.AddTag(RequiredPrimaryTag);
-			if (SecondaryTag.IsValid())
-			{
-				RequiredTags.AddTag(SecondaryTag);
-			}
+			RequiredTags.AppendTags(SecondaryTags); // Add all secondary tags
 
 			bool bFoundMatchingActor = false;
 			// Iterate through all found actors to find one that matches the required tags
@@ -128,7 +126,7 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 					UntangleableActor.SetInterface(Cast<IUntangleable>(Actor)); // Safe cast
 
 					InnerArray.Add(UntangleableActor);
-					UE_LOG(LogTemp, Verbose, TEXT("Matched Actor %s for Primary Tag %s (Required Secondary: %s)"), *Actor->GetName(), *RequiredPrimaryTag.ToString(), *SecondaryTag.ToString());
+					UE_LOG(LogTemp, Verbose, TEXT("Matched Actor %s for Primary Tag %s (Required Secondary Tags: %s)"), *Actor->GetName(), *RequiredPrimaryTag.ToString(), *SecondaryTags.ToString());
 					bFoundMatchingActor = true;
 					break; // Stop searching for actors for this specific RequiredPrimaryTag
 				}
@@ -137,10 +135,10 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 			if (!bFoundMatchingActor)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Could not find any actor matching required tags: Primary=%s, Secondary=%s"),
-					   *RequiredPrimaryTag.ToString(), *SecondaryTag.ToString());
+					   *RequiredPrimaryTag.ToString(), *SecondaryTags.ToString());
 				bConstructionSuccessful = false; // Mark as potentially incomplete
-												 // Optionally add a null entry or skip, depending on desired behavior
-												 // InnerArray.Add(nullptr);
+				// Add a null entry to represent the missing actor in the structure
+				InnerArray.Add(nullptr);
 			}
 		} // End loop through NodeConnections (tags)
 
@@ -148,19 +146,19 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 	} // End loop through AdjacencyList
 	// --- End Refactored Logic ---
 
+	// Always format the debug string, even if construction was incomplete
+	FormatDebugUntangleableObjects();
+
 	if (bConstructionSuccessful)
 	{
 		UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Successfully constructed UntangleableObjects with %d nodes for graph %s."), UntangleableObjects.Num(), *TargetGraph->GetName());
 		// Update the last constructed graph reference only on successful completion
 		LastConstructedTargetGraph = TargetGraph;
-		// Format the debug string
-		FormatDebugUntangleableObjects();
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Finished constructing UntangleableObjects for graph %s, but some actors were missing."), *TargetGraph->GetName());
 		// Keep LastConstructedTargetGraph null to allow reconstruction attempt on next run
-		// NOTE: Debug string remains empty as construction was incomplete
 	}
 }
 
@@ -170,10 +168,19 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 
 	for (const TArray<TScriptInterface<IUntangleable>> &NodeConnections : UntangleableObjects)
 	{
-		if (NodeConnections.Num() > 0 && NodeConnections[0].GetObject())
+		FString KeyName = TEXT("INVALID_NODE"); // Default if node is missing/invalid
+		if (NodeConnections.Num() > 0)
 		{
-			// Use the object's name directly
-			FString KeyName = NodeConnections[0].GetObject()->GetName();
+			if (NodeConnections[0].GetObject())
+			{
+				// Use the object's name directly
+				KeyName = NodeConnections[0].GetObject()->GetName();
+			}
+			else
+			{
+				KeyName = TEXT("NULL_NODE"); // Node entry exists but is null
+			}
+
 			DebugUntangleableObjects += FString::Printf(TEXT("%s -> ["), *KeyName);
 
 			// Start from index 1 to get neighbors
@@ -187,7 +194,7 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 				}
 				else
 				{
-					DebugUntangleableObjects += TEXT("NULL"); // Handle potential null entries if added during construction
+					DebugUntangleableObjects += TEXT("NULL"); // Handle null neighbor entries
 				}
 
 				if (i < NodeConnections.Num() - 1)
@@ -196,16 +203,18 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 				}
 			}
 			DebugUntangleableObjects += TEXT("]");
-			// Add newline for readability, check if it's not the last element
-			if (&NodeConnections != &UntangleableObjects.Last())
-			{
-				DebugUntangleableObjects += TEXT("\n\n");
-			}
 		}
-		else if (NodeConnections.Num() > 0)
+		else
 		{
-			// Handle case where the first element might be null
-			DebugUntangleableObjects += TEXT("NULL -> [...]\n\n");
+			// Handle case where the inner array itself is empty (shouldn't happen with current logic but good practice)
+			DebugUntangleableObjects += TEXT("EMPTY_NODE_ARRAY");
+		}
+
+		// Add newline for readability, check if it's not the last element
+		if (&NodeConnections != &UntangleableObjects.Last())
+		{
+			DebugUntangleableObjects += TEXT("\n\n");
 		}
 	}
 }
+
