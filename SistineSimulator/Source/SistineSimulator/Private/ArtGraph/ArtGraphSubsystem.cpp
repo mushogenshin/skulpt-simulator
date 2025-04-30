@@ -1,5 +1,7 @@
 #include "ArtGraph/ArtGraphSubsystem.h"
 #include "ArtGraph/ArtGraph.h"
+#include "AssetRegistry/AssetRegistryModule.h" // Include Asset Registry header
+#include "Engine/AssetManager.h" // Include for UAssetManager
 
 void UArtGraphSubsystem::RegisterGraph(UGraphElement *Graph)
 {
@@ -79,9 +81,36 @@ void UArtGraphSubsystem::Initialize(FSubsystemCollectionBase &Collection)
 	Super::Initialize(Collection);
 
 	// Log a message to confirm the subsystem is initialized
+	UE_LOG(LogEngine, Display, TEXT("ArtGraphSubsystem initializing..."));
+
+	// Scan for all UGraphElement assets and register them
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+	TArray<FAssetData> AssetData;
+	// Use the correct class name here - UGraphElement
+	AssetRegistryModule.Get().GetAssetsByClass(UGraphElement::StaticClass()->GetClassPathName(), AssetData);
+
+	UE_LOG(LogEngine, Display, TEXT("Found %d UGraphElement assets."), AssetData.Num());
+
+	for (const FAssetData& Data : AssetData)
+	{
+		UGraphElement* GraphElement = Cast<UGraphElement>(Data.GetAsset());
+		if (GraphElement)
+		{
+			// Ensure the asset is fully loaded before accessing properties like ReferencedElements
+			GraphElement->ConditionalPostLoad();
+			RegisterGraph(GraphElement);
+		}
+		else
+		{
+			UE_LOG(LogEngine, Warning, TEXT("Failed to load or cast asset: %s"), *Data.GetObjectPathString());
+		}
+	}
+
+
 	UE_LOG(LogEngine, Display, TEXT("ArtGraphSubsystem initialized successfully."));
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("GraphSubsystem initialized successfully."));
 	}
 }
+
