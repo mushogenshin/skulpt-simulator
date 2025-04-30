@@ -65,6 +65,7 @@ void UGraphElement::FormatDebugAdjacencyList()
 		if (NodeConnections.Num() > 0)
 		{
 			const FGameplayTag &Key = NodeConnections[0];
+			// The first element is the node itself
 			DebugAdjacencyList += FString::Printf(TEXT("%s -> ["), *Key.ToString());
 
 			// Start from index 1 to get neighbors

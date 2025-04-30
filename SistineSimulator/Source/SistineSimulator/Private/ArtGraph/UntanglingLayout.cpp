@@ -16,30 +16,11 @@ void AUntanglingLayout::BeginPlay()
 
 	if (TargetGraph)
 	{
-		TArray<TArray<FGameplayTag>> AdjacencyList = TargetGraph->GetAdjacencyList();
-		for (const TArray<FGameplayTag>& NodeConnections : AdjacencyList)
-		{
-			if (NodeConnections.Num() > 0)
-			{
-				FString LogMessage = FString::Printf(TEXT("Node: %s -> "), *NodeConnections[0].ToString());
-				for (int32 i = 1; i < NodeConnections.Num(); ++i)
-				{
-					LogMessage += NodeConnections[i].ToString() + TEXT(", ");
-				}
-				if (GEngine)
-				{
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMessage);
-				}
-				// E.g.
-				// LogTemp: Node: Sistine.Sibyl.Delphic -> Sistine.Prophet.Isaah, Sistine.Prophet.Zacheria, 
-				// LogTemp: Node: Sistine.Prophet.Isaah -> Sistine.Sibyl.Delphic, 
-				// LogTemp: Node: Sistine.Prophet.Zacheria -> Sistine.Sibyl.Delphic, 
-			}
-		}
+		// TArray<TArray<FGameplayTag>> AdjacencyList = TargetGraph->GetAdjacencyList();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TargetGraph is null in AUntanglingLayout::BeginPlay"));
+		UE_LOG(LogTemp, Warning, TEXT("TargetGraph is null for $s"), *GetName());
 	}
 }
 
@@ -48,4 +29,3 @@ void AUntanglingLayout::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-

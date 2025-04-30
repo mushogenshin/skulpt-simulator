@@ -1,7 +1,7 @@
 #include "ArtGraph/ArtGraphSubsystem.h"
 #include "ArtGraph/ArtGraph.h"
 #include "AssetRegistry/AssetRegistryModule.h" // Include Asset Registry header
-#include "Engine/AssetManager.h" // Include for UAssetManager
+#include "Engine/AssetManager.h"			   // Include for UAssetManager
 
 void UArtGraphSubsystem::RegisterGraph(UGraphElement *Graph, bool bClearPreviousReferences)
 {
@@ -22,19 +22,6 @@ void UArtGraphSubsystem::RegisterGraph(UGraphElement *Graph, bool bClearPrevious
 			ElementToDependentGraphsMap.FindOrAdd(Element).Add(Graph);
 		}
 	}
-
-	// // Log the current content of ElementToGraphsMap
-	// UE_LOG(LogEngine, Display, TEXT("Current ElementToGraphsMap content:"));
-	// for (const auto &Pair : ElementToGraphsMap)
-	// {
-	// 	FString ElementName = Pair.Key ? Pair.Key->GetName() : TEXT("Unknown");
-	// 	FString GraphNames;
-	// 	for (const UGraphElement *Graph : Pair.Value)
-	// 	{
-	// 		GraphNames += Graph ? Graph->GetName() + TEXT(", ") : TEXT("Unknown, ");
-	// 	}
-	// 	UE_LOG(LogEngine, Display, TEXT("Element: %s -> Graphs: %s"), *ElementName, *GraphNames);
-	// }
 }
 
 void UArtGraphSubsystem::UnregisterGraph(UGraphElement *Graph)
@@ -74,7 +61,7 @@ void UArtGraphSubsystem::NotifyElementChanged(UGraphElement *ChangedElement)
 		{
 			if (Graph)
 			{
-				UE_LOG(LogEngine, Display, TEXT("ArtGraph %s updated due to change in element %s"), *Graph->GetName(), *ChangedElement->GetName());
+				// UE_LOG(LogEngine, Display, TEXT("ArtGraph %s updated due to change in element %s"), *Graph->GetName(), *ChangedElement->GetName());
 				Graph->UpdateAdjacencyList();
 			}
 		}
@@ -89,16 +76,16 @@ void UArtGraphSubsystem::Initialize(FSubsystemCollectionBase &Collection)
 	UE_LOG(LogEngine, Display, TEXT("ArtGraphSubsystem initializing..."));
 
 	// Scan for all UGraphElement assets and register them
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+	FAssetRegistryModule &AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
 	TArray<FAssetData> AssetData;
 	// Use the correct class name here - UGraphElement
 	AssetRegistryModule.Get().GetAssetsByClass(UGraphElement::StaticClass()->GetClassPathName(), AssetData);
 
 	UE_LOG(LogEngine, Display, TEXT("Found %d UGraphElement assets."), AssetData.Num());
 
-	for (const FAssetData& Data : AssetData)
+	for (const FAssetData &Data : AssetData)
 	{
-		UGraphElement* GraphElement = Cast<UGraphElement>(Data.GetAsset());
+		UGraphElement *GraphElement = Cast<UGraphElement>(Data.GetAsset());
 		if (GraphElement)
 		{
 			// Ensure the asset is fully loaded before accessing properties like ReferencedElements
@@ -113,11 +100,9 @@ void UArtGraphSubsystem::Initialize(FSubsystemCollectionBase &Collection)
 		}
 	}
 
-
 	UE_LOG(LogEngine, Display, TEXT("ArtGraphSubsystem initialized successfully."));
 	if (GEngine)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("GraphSubsystem initialized successfully."));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("ArtGraphSubsystem initialized successfully."));
 	}
 }
-
