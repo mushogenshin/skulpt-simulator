@@ -23,13 +23,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
 	float KConstant;
 
-	// Array of objects that implement the Untangleable interface and are part of the layout
+	// Array of arrays of objects that implement the Untangleable interface, structured like an adjacency list.
+	// The first element of each inner array corresponds to a node, and the rest are its neighbors.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArtGraph")
-	TArray<TScriptInterface<IUntangleable>> UntangleableObjects;
+	TArray<TArray<TScriptInterface<IUntangleable>>> UntangleableObjects;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	// Called when the actor is constructed or properties are changed in the editor
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 private:
 	float KSquared;
@@ -42,4 +46,3 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 };
-

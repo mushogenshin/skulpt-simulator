@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "GameplayTagContainer.h" // Include for FGameplayTag
 #include "Untangleable.generated.h"
 
 // This class does not need to be modified.
@@ -21,10 +22,14 @@ class SISTINESIMULATOR_API IUntangleable
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	/** Returns the current world location of the object. */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "ArtGraph")
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Untangleable")
 	FVector GetLocation() const;
 
 	/** Sets the world location of the object. */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "ArtGraph")
-	void SetLocation(const FVector &NewLocation);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Untangleable")
+	void SetLocation(const FVector& NewLocation);
+
+	/** Returns the Gameplay Tag associated with this object. */
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Untangleable")
+	FGameplayTag GetTag() const;
 };
