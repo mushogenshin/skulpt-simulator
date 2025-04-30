@@ -32,4 +32,9 @@ public:
 	/** Returns the Gameplay Tag associated with this object. */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Untangleable")
 	FGameplayTag GetTag() const;
+
+	/** Returns the name of the object. */
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Untangleable")
+	FString GetName() const;
 };
+

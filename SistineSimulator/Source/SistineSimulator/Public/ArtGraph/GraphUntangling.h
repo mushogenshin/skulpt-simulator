@@ -35,6 +35,10 @@ protected:
 	virtual void OnConstruction(const FTransform &Transform) override;
 
 private:
+	// Debug property to display the constructed UntangleableObjects list in the editor
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", MultiLine = true))
+	FString DebugUntangleableObjects;
+
 	// Stores the TargetGraph used in the last successful OnConstruction run
 	UPROPERTY(Transient) // Prevent saving this state
 	TObjectPtr<UGraphElement> LastConstructedTargetGraph;
@@ -45,7 +49,11 @@ private:
 	uint32 CurrentIter;
 	uint32 MaxIter;
 
+	// Helper function to find actors implementing Untangleable
 	void FindUntangleableActorsWithTag();
+
+	// Helper function to format the DebugUntangleableObjects string
+	void FormatDebugUntangleableObjects();
 
 public:
 	// Called every frame
