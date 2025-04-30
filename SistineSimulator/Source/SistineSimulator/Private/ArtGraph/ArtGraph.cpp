@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ArtGraph/ArtGraph.h"
-#include "ArtGraph/GraphSubsystem.h"
+#include "ArtGraph/ArtGraphSubsystem.h"
 
 // TArray<TPair<FGameplayTag, FGameplayTag>> UGraphElement::GetEdgesAsTagPairs() const
 // {
@@ -63,7 +63,7 @@ TArray<UGraphElement *> UGraphElement::GetReferencedElements() const
 			ReferencedElements.AddUnique(Edge.ElementB);
 		}
 	}
-
+	
 	return ReferencedElements;
 }
 
@@ -71,14 +71,15 @@ void UGraphElement::PostEditChangeProperty(FPropertyChangedEvent &PropertyChange
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	UE_LOG(LogTemp, Display, TEXT("UGraphElement::PostEditChangeProperty"));
-
 	// Update the cached adjacency list
 	UpdateAdjacencyList();
 
-	// Notify the subsystem
-	if (UGraphSubsystem *Subsystem = GEngine->GetEngineSubsystem<UGraphSubsystem>())
+	if (UArtGraphSubsystem *Subsystem = GEngine->GetEngineSubsystem<UArtGraphSubsystem>())
 	{
+		// Register this graph and all of its referenced graphs with the subsystem
+		Subsystem->RegisterGraph(this);
+
+		// Notify the subsystem
 		Subsystem->NotifyElementChanged(this);
 	}
 }
