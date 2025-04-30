@@ -25,7 +25,6 @@ public:
 
 	// Array of arrays of objects that implement the Untangleable interface, structured like an adjacency list.
 	// The first element of each inner array corresponds to a node, and the rest are its neighbors.
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArtGraph")
 	TArray<TArray<TScriptInterface<IUntangleable>>> UntangleableObjects;
 
 protected:
@@ -36,6 +35,10 @@ protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 private:
+	// Stores the TargetGraph used in the last successful OnConstruction run
+	UPROPERTY(Transient) // Prevent saving this state
+	TObjectPtr<UGraphElement> LastConstructedTargetGraph;
+
 	float KSquared;
 	float Temperature;
 	TArray<FVector> Movements;
@@ -46,3 +49,4 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 };
+
