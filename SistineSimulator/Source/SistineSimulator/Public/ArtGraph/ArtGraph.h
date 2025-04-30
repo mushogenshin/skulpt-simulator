@@ -59,4 +59,11 @@ private:
 	// Debug property to display the cached adjacency list in the editor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", MultiLine = true))
 	FString DebugAdjacencyList;
+
+	// Helper function to calculate the adjacency list and store it in CachedAdjacencyList
+	void CalculateAdjacencyList();
+
+	// Helper function to format the DebugAdjacencyList string based on CachedAdjacencyList
+	void FormatDebugAdjacencyList();
 };
+

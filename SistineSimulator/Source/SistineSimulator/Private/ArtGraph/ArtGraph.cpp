@@ -11,7 +11,19 @@ TArray<TArray<FGameplayTag>> UGraphElement::GetAdjacencyList() const
 void UGraphElement::UpdateAdjacencyList()
 {
 	UE_LOG(LogTemp, Display, TEXT("Updating adjacency list for graph %s"), *GetName());
+	CalculateAdjacencyList();
+	FormatDebugAdjacencyList();
+}
+
+void UGraphElement::CalculateAdjacencyList()
+{
 	TMap<FGameplayTag, TSet<FGameplayTag>> AdjacencyMap;
+
+	// // Add self to the map to ensure it appears even if it has no edges
+	// if (Tag.IsValid())
+	// {
+	// 	AdjacencyMap.FindOrAdd(Tag);
+	// }
 
 	for (const FGraphEdge &Edge : Edges)
 	{
@@ -25,7 +37,6 @@ void UGraphElement::UpdateAdjacencyList()
 
 	// Convert the adjacency map to an array of arrays
 	CachedAdjacencyList.Empty();
-	DebugAdjacencyList.Empty(); // Clear the debug string
 	TArray<FGameplayTag> MapKeys;
 	AdjacencyMap.GetKeys(MapKeys);
 	MapKeys.Sort([](const FGameplayTag &A, const FGameplayTag &B) { // Sort for consistent debug output
@@ -42,17 +53,34 @@ void UGraphElement::UpdateAdjacencyList()
 		});
 		NodeConnections.Append(Neighbors); // Add all connected nodes
 		CachedAdjacencyList.Add(NodeConnections);
+	}
+}
 
-		// Update the debug string
-		DebugAdjacencyList += FString::Printf(TEXT("%s -> ["), *Key.ToString());
-		for (int32 i = 0; i < Neighbors.Num(); ++i)
+void UGraphElement::FormatDebugAdjacencyList()
+{
+	DebugAdjacencyList.Empty(); // Clear the debug string
+
+	for (const TArray<FGameplayTag> &NodeConnections : CachedAdjacencyList)
+	{
+		if (NodeConnections.Num() > 0)
 		{
-			DebugAdjacencyList += Neighbors[i].ToString();
-			if (i < Neighbors.Num() - 1)
+			const FGameplayTag &Key = NodeConnections[0];
+			DebugAdjacencyList += FString::Printf(TEXT("%s -> ["), *Key.ToString());
+
+			// Start from index 1 to get neighbors
+			for (int32 i = 1; i < NodeConnections.Num(); ++i)
 			{
-				DebugAdjacencyList += TEXT(", ");
+				DebugAdjacencyList += NodeConnections[i].ToString();
+				if (i < NodeConnections.Num() - 1)
+				{
+					DebugAdjacencyList += TEXT(", ");
+				}
 			}
-			DebugAdjacencyList += TEXT("]\n");
+			DebugAdjacencyList += TEXT("]");
+			if (&NodeConnections != &CachedAdjacencyList.Last())
+			{
+				DebugAdjacencyList += TEXT("\n\n");
+			}
 		}
 	}
 }
