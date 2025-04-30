@@ -28,7 +28,7 @@ public:
 
 	// Array of arrays of objects that implement the Untangleable interface, structured like an adjacency list.
 	// The first element of each inner array corresponds to a node, and the rest are its neighbors.
-	TArray<TArray<TScriptInterface<IUntangleable>>> UntangleableObjects;
+	TArray<TArray<TScriptInterface<IUntangleable>>> AdjacencyList;
 
 protected:
 	// Called when the game starts or when spawned
@@ -40,7 +40,7 @@ protected:
 private:
 	// Debug property to display the constructed UntangleableObjects list in the editor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", MultiLine = true))
-	FString DebugUntangleableObjects;
+	FString DebugAdjacencyList;
 
 	// Stores the TargetGraph used in the last successful OnConstruction run
 	UPROPERTY(Transient) // Prevent saving this state
@@ -53,10 +53,10 @@ private:
 	uint32 MaxIter;
 
 	// Helper function to find actors implementing Untangleable
-	void FindUntangleableActorsWithTag();
+	void MakeAdjacencyListFromTags();
 
 	// Helper function to format the DebugUntangleableObjects string
-	void FormatDebugUntangleableObjects();
+	void FormatDebugAdjacenctyList();
 
 public:
 	// Called every frame
