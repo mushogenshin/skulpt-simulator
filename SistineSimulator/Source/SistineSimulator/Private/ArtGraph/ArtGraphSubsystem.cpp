@@ -3,14 +3,16 @@
 
 void UArtGraphSubsystem::RegisterGraph(UGraphElement *Graph)
 {
-	UE_LOG(LogEngine, Display, TEXT("Registering ArtGraph %s"), *Graph->GetName());
-
 	if (!Graph)
 		return;
 
+	// Unregister the graph from all previously referenced elements
+	// to avoid phantom mapping
+	UnregisterGraph(Graph);
+
+	UE_LOG(LogEngine, Display, TEXT("Registering ArtGraph %s"), *Graph->GetName());
 	for (UGraphElement *Element : Graph->GetReferencedElements())
 	{
-		// BUG: this leaves phantom elements in the map
 		ElementToGraphsMap.FindOrAdd(Element).Add(Graph);
 	}
 
@@ -33,14 +35,22 @@ void UArtGraphSubsystem::UnregisterGraph(UGraphElement *Graph)
 	if (!Graph)
 		return;
 
-	for (UGraphElement *Element : Graph->GetReferencedElements())
+	UE_LOG(LogEngine, Display, TEXT("Unregistering ArtGraph %s"), *Graph->GetName());
+
+	// Iterate through the entire map to find and remove the graph
+	for (auto It = ElementToGraphsMap.CreateIterator(); It; ++It)
 	{
-		if (TSet<UGraphElement *> *Graphs = ElementToGraphsMap.Find(Element))
+		UGraphElement *Element = It.Key();
+		TSet<UGraphElement *> &Graphs = It.Value();
+
+		if (Graphs.Contains(Graph))
 		{
-			Graphs->Remove(Graph);
-			if (Graphs->Num() == 0)
+			Graphs.Remove(Graph);
+
+			// If the set becomes empty after removal, remove the element entry from the map
+			if (Graphs.Num() == 0)
 			{
-				ElementToGraphsMap.Remove(Element);
+				It.RemoveCurrent();
 			}
 		}
 	}
@@ -57,7 +67,7 @@ void UArtGraphSubsystem::NotifyElementChanged(UGraphElement *ChangedElement)
 		{
 			if (Graph)
 			{
-				UE_LOG(LogEngine, Display, TEXT("Graph %s updated due to change in element %s"), *Graph->GetName(), *ChangedElement->GetName());
+				UE_LOG(LogEngine, Display, TEXT("ArtGraph %s updated due to change in element %s"), *Graph->GetName(), *ChangedElement->GetName());
 				Graph->UpdateAdjacencyList();
 			}
 		}
