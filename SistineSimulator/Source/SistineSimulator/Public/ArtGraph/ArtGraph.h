@@ -43,6 +43,7 @@ public:
 	TArray<TArray<FGameplayTag>> GetAdjacencyList() const;
 
 	// Helper function to update the cached adjacency list
+	// TODO: call this once on PostLoad?
 	void UpdateAdjacencyList();
 
 	// Get all elements referenced by this graph
@@ -66,4 +67,3 @@ private:
 	// Helper function to format the DebugAdjacencyList string based on CachedAdjacencyList
 	void FormatDebugAdjacencyList();
 };
-
