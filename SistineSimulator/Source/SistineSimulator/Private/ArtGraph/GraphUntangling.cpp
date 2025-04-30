@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ArtGraph/GraphUntangling.h"
-#include "Kismet/GameplayStatics.h" // Include for UGameplayStatics
-#include "ArtGraph/Untangleable.h"	// Include the interface header
+#include "Kismet/GameplayStatics.h"
+#include "ArtGraph/Untangleable.h"
 
 // Sets default values
 AGraphUntangling::AGraphUntangling()
@@ -48,19 +48,20 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 		return;
 	}
 
-	// If the current TargetGraph is the same as the one used last time, skip reconstruction.
+	// If the current TargetGraph and SecondaryTag are the same as the ones used last time, skip reconstruction.
+	// Note: This simple check might not catch all cases if SecondaryTag changes but TargetGraph doesn't.
 	if (TargetGraph == LastConstructedTargetGraph)
 	{
 		return;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: TargetGraph changed to %s or first run. Reconstructing UntangleableObjects."), *TargetGraph->GetName());
+	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: TargetGraph (%s) or SecondaryTag changed, or first run. Reconstructing UntangleableObjects."), *TargetGraph->GetName());
 
 	UntangleableObjects.Empty();
 	DebugUntangleableObjects.Empty();	  // Clear debug string initially
 	LastConstructedTargetGraph = nullptr; // Clear last graph in case construction fails below
 
-	// Ensure the graph's adjacency list is up-to-date (important if graph was modified)
+	// Ensure the graph's adjacency list is up-to-date
 	TargetGraph->UpdateAdjacencyList();
 	const TArray<TArray<FGameplayTag>> &AdjacencyList = TargetGraph->GetAdjacencyList();
 
@@ -81,71 +82,71 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 	}
 	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Found %d actors implementing Untangleable interface."), FoundActors.Num());
 
-	// Create a map for quick lookup of actors by their tag
-	TMap<FGameplayTag, TScriptInterface<IUntangleable>> TagToActorMap;
-	for (AActor *Actor : FoundActors)
-	{
-		if (!Actor)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Null actor found in FoundActors array"));
-			continue;
-		}
-
-		// Use Execute_* functions to interact with the interface
-		if (Actor->GetClass()->ImplementsInterface(UUntangleable::StaticClass()))
-		{
-			FString ActorName = Actor->GetName(); // Use Actor's name directly
-			FGameplayTag ActorTag = IUntangleable::Execute_GetTag(Actor);
-			if (!ActorTag.IsValid())
-			{
-				// UE_LOG(LogTemp, Warning, TEXT("Untangleable Actor %s has an invalid tag"), *ActorName);
-				continue;
-			}
-
-			// Create the TScriptInterface manually
-			TScriptInterface<IUntangleable> UntangleableActor;
-			UntangleableActor.SetObject(Actor);
-			UntangleableActor.SetInterface(Cast<IUntangleable>(Actor)); // This cast is safe because we checked ImplementsInterface
-
-			// TODO: avoid overwriting existing entries?
-			if (TagToActorMap.Contains(ActorTag))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Duplicate tag detected. Actor %s with Tag %s is overwriting an existing entry."), *ActorName, *ActorTag.ToString());
-			}
-
-			TagToActorMap.Add(ActorTag, UntangleableActor);
-			UE_LOG(LogTemp, Log, TEXT("Added Untangleable Actor: %s with Tag: %s"), *ActorName, *ActorTag.ToString());
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Actor %s does not implement Untangleable interface."), *Actor->GetName());
-		}
-	}
-
-	// Construct the UntangleableObjects array based on the graph's adjacency list
 	bool bConstructionSuccessful = true; // Track if construction completes without missing actors
 	UntangleableObjects.Reserve(AdjacencyList.Num());
+
+	// Iterate through the desired graph structure (Adjacency List)
 	for (const TArray<FGameplayTag> &NodeConnections : AdjacencyList)
 	{
 		TArray<TScriptInterface<IUntangleable>> InnerArray;
 		InnerArray.Reserve(NodeConnections.Num());
 
-		for (const FGameplayTag &Tag : NodeConnections)
+		// For each tag (node or neighbor) in the graph structure
+		for (const FGameplayTag &RequiredPrimaryTag : NodeConnections)
 		{
-			if (TScriptInterface<IUntangleable> *FoundActor = TagToActorMap.Find(Tag))
+			if (!RequiredPrimaryTag.IsValid())
 			{
-				InnerArray.Add(*FoundActor);
+				UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Encountered invalid tag in TargetGraph's adjacency list. Skipping."));
+				continue;
 			}
-			else
+
+			// Define the required tags for the actor: the primary tag from the graph + the secondary tag
+			FGameplayTagContainer RequiredTags;
+			RequiredTags.AddTag(RequiredPrimaryTag);
+			if (SecondaryTag.IsValid())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Could not find an actor with tag %s required by TargetGraph %s."), *Tag.ToString(), *TargetGraph->GetName());
+				RequiredTags.AddTag(SecondaryTag);
+			}
+
+			bool bFoundMatchingActor = false;
+			// Iterate through all found actors to find one that matches the required tags
+			for (AActor *Actor : FoundActors)
+			{
+				if (!Actor || !Actor->GetClass()->ImplementsInterface(UUntangleable::StaticClass()))
+				{
+					continue; // Skip invalid actors or those not implementing the interface
+				}
+
+				FGameplayTagContainer ActorTags = IUntangleable::Execute_GetTags(Actor);
+
+				// Check if the actor has ALL the required tags
+				if (ActorTags.HasAll(RequiredTags))
+				{
+					// Found a matching actor
+					TScriptInterface<IUntangleable> UntangleableActor;
+					UntangleableActor.SetObject(Actor);
+					UntangleableActor.SetInterface(Cast<IUntangleable>(Actor)); // Safe cast
+
+					InnerArray.Add(UntangleableActor);
+					UE_LOG(LogTemp, Verbose, TEXT("Matched Actor %s for Primary Tag %s (Required Secondary: %s)"), *Actor->GetName(), *RequiredPrimaryTag.ToString(), *SecondaryTag.ToString());
+					bFoundMatchingActor = true;
+					break; // Stop searching for actors for this specific RequiredPrimaryTag
+				}
+			} // End loop through FoundActors
+
+			if (!bFoundMatchingActor)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Could not find any actor matching required tags: Primary=%s, Secondary=%s"),
+					   *RequiredPrimaryTag.ToString(), *SecondaryTag.ToString());
 				bConstructionSuccessful = false; // Mark as potentially incomplete
 												 // Optionally add a null entry or skip, depending on desired behavior
 												 // InnerArray.Add(nullptr);
 			}
-		}
+		} // End loop through NodeConnections (tags)
+
 		UntangleableObjects.Add(InnerArray);
-	}
+	} // End loop through AdjacencyList
+	// --- End Refactored Logic ---
 
 	if (bConstructionSuccessful)
 	{
@@ -208,4 +209,3 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 		}
 	}
 }
-

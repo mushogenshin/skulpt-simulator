@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ArtGraph.h"
-#include "Untangleable.h" // Include the new interface header
+#include "Untangleable.h"
 #include "GraphUntangling.generated.h"
 
 UCLASS()

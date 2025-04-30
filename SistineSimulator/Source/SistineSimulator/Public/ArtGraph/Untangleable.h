@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "GameplayTagContainer.h" // Include for FGameplayTagContainer
+#include "GameplayTagContainer.h"
 #include "Untangleable.generated.h"
 
 // This class does not need to be modified.
@@ -27,7 +27,7 @@ public:
 
 	/** Sets the world location of the object. */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Untangleable")
-	void SetLocation(const FVector& NewLocation);
+	void SetLocation(const FVector &NewLocation);
 
 	/** Returns the Gameplay Tags associated with this object. */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Untangleable")
