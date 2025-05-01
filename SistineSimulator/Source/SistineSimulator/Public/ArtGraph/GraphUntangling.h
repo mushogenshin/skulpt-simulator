@@ -59,7 +59,7 @@ private:
 	uint32 MaxIter;
 
 	// Helper function to find actors implementing Untangleable
-	void FindUntangleableActorsWithTag();
+	void FindUntangleableActorsByTags();
 
 	// Helper function to format the DebugUntangleableObjects string
 	void FormatDebugUntangleableObjects();

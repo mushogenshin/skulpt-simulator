@@ -23,7 +23,7 @@ AGraphUntangling::AGraphUntangling()
 void AGraphUntangling::RefreshUntangleableActors()
 {
 	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::RefreshUntangleableActors."));
-	FindUntangleableActorsWithTag();
+	FindUntangleableActorsByTags();
 	FormatDebugUntangleableObjects();
 }
 
@@ -43,12 +43,12 @@ void AGraphUntangling::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AGraphUntangling::FindUntangleableActorsWithTag()
+void AGraphUntangling::FindUntangleableActorsByTags()
 {
 	// If TargetGraph is not set, clear the list and the last constructed graph reference.
 	if (!TargetedGraph)
 	{
-		UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: TargetGraph is null. Clearing UntangleableObjects."));
+		UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsByTags: TargetGraph is null. Clearing UntangleableObjects."));
 		UntangleableObjects.Empty();
 		return;
 	}
@@ -61,7 +61,7 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 
 	if (AdjacencyList.IsEmpty())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: TargetGraph %s has an empty adjacency list. Skipping."), *TargetedGraph->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsByTags: TargetGraph %s has an empty adjacency list. Skipping."), *TargetedGraph->GetName());
 		return;
 	}
 
@@ -71,7 +71,7 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 
 	if (FoundActors.Num() == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: No actors implementing Untangleable interface found in the level."));
+		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsByTags: No actors implementing Untangleable interface found in the level."));
 		return;
 	}
 
@@ -89,7 +89,7 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 		{
 			if (!RequiredPrimaryTag.IsValid())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Encountered invalid tag in TargetGraph's adjacency list. Skipping."));
+				UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsByTags: Encountered invalid tag in TargetGraph's adjacency list. Skipping."));
 				InnerArray.Add(nullptr); // Add null to maintain array structure
 				continue;
 			}
@@ -137,7 +137,7 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 
 			if (!bFoundMatchingActor)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Could not find any actor matching required tags: Primary=%s, Secondary=%s"),
+				UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsByTags: Could not find any actor matching required tags: Primary=%s, Secondary=%s"),
 					   *RequiredPrimaryTag.ToString(), *SecondaryTags.ToString());
 				bConstructionSuccessful = false; // Mark as potentially incomplete
 				// Add a null entry to represent the missing actor in the structure
@@ -150,11 +150,11 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 
 	if (bConstructionSuccessful)
 	{
-		UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Successfully constructed UntangleableObjects with %d nodes for graph %s."), UntangleableObjects.Num(), *TargetedGraph->GetName());
+		UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsByTags: Successfully constructed UntangleableObjects with %d nodes for graph %s."), UntangleableObjects.Num(), *TargetedGraph->GetName());
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Finished constructing UntangleableObjects for graph %s, but some actors were missing."), *TargetedGraph->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsByTags: Finished constructing UntangleableObjects for graph %s, but some actors were missing."), *TargetedGraph->GetName());
 	}
 }
 
