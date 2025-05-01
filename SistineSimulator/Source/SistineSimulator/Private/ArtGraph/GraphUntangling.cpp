@@ -49,14 +49,14 @@ void AGraphUntangling::FindUntangleableActorsByTags()
 	if (!TargetedGraph)
 	{
 		UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsByTags: TargetGraph is null. Clearing UntangleableObjects."));
-		UntangleableObjects.Empty();
+		UntangleableAdjacencyList.Empty();
 		return;
 	}
 
-	// Explicitly update the adjacency list before using it
-	TargetedGraph->UpdateAdjacencyList();
+	// // Explicitly update the adjacency list before using it
+	// TargetedGraph->UpdateAdjacencyList();
 
-	UntangleableObjects.Empty();
+	UntangleableAdjacencyList.Empty();
 	const TArray<TArray<FGameplayTag>> &AdjacencyList = TargetedGraph->GetAdjacencyList();
 
 	if (AdjacencyList.IsEmpty())
@@ -76,7 +76,7 @@ void AGraphUntangling::FindUntangleableActorsByTags()
 	}
 
 	bool bConstructionSuccessful = true; // Track if construction completes without missing actors
-	UntangleableObjects.Reserve(AdjacencyList.Num());
+	UntangleableAdjacencyList.Reserve(AdjacencyList.Num());
 
 	// Iterate through the desired graph structure (Adjacency List)
 	for (const TArray<FGameplayTag> &NodeConnections : AdjacencyList)
@@ -145,12 +145,12 @@ void AGraphUntangling::FindUntangleableActorsByTags()
 			}
 		} // End loop through NodeConnections (tags)
 
-		UntangleableObjects.Add(InnerArray);
+		UntangleableAdjacencyList.Add(InnerArray);
 	} // End loop through AdjacencyList
 
 	if (bConstructionSuccessful)
 	{
-		UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsByTags: Successfully constructed UntangleableObjects with %d nodes for graph %s."), UntangleableObjects.Num(), *TargetedGraph->GetName());
+		UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsByTags: Successfully constructed UntangleableObjects with %d nodes for graph %s."), UntangleableAdjacencyList.Num(), *TargetedGraph->GetName());
 	}
 	else
 	{
@@ -160,9 +160,9 @@ void AGraphUntangling::FindUntangleableActorsByTags()
 
 void AGraphUntangling::FormatDebugUntangleableObjects()
 {
-	DebugUntangleableObjects.Empty(); // Clear the debug string
+	DebugAdjacencyList.Empty(); // Clear the debug string
 
-	for (const TArray<TScriptInterface<IUntangleable>> &NodeConnections : UntangleableObjects)
+	for (const TArray<TScriptInterface<IUntangleable>> &NodeConnections : UntangleableAdjacencyList)
 	{
 		FString KeyName = TEXT("INVALID_NODE"); // Default if node is missing/invalid
 		if (NodeConnections.Num() > 0)
@@ -177,7 +177,7 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 				KeyName = TEXT("NULL_NODE"); // Node entry exists but is null
 			}
 
-			DebugUntangleableObjects += FString::Printf(TEXT("%s -> ["), *KeyName);
+			DebugAdjacencyList += FString::Printf(TEXT("%s -> ["), *KeyName);
 
 			// Start from index 1 to get neighbors
 			for (int32 i = 1; i < NodeConnections.Num(); ++i)
@@ -186,30 +186,30 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 				{
 					// Use the neighbor object's name directly
 					FString NeighborName = NodeConnections[i].GetObject()->GetName();
-					DebugUntangleableObjects += NeighborName;
+					DebugAdjacencyList += NeighborName;
 				}
 				else
 				{
-					DebugUntangleableObjects += TEXT("NULL"); // Handle null neighbor entries
+					DebugAdjacencyList += TEXT("NULL"); // Handle null neighbor entries
 				}
 
 				if (i < NodeConnections.Num() - 1)
 				{
-					DebugUntangleableObjects += TEXT(", ");
+					DebugAdjacencyList += TEXT(", ");
 				}
 			}
-			DebugUntangleableObjects += TEXT("]");
+			DebugAdjacencyList += TEXT("]");
 		}
 		else
 		{
 			// Handle case where the inner array itself is empty (shouldn't happen with current logic but good practice)
-			DebugUntangleableObjects += TEXT("EMPTY_NODE_ARRAY");
+			DebugAdjacencyList += TEXT("EMPTY_NODE_ARRAY");
 		}
 
 		// Add newline for readability, check if it's not the last element
-		if (&NodeConnections != &UntangleableObjects.Last())
+		if (&NodeConnections != &UntangleableAdjacencyList.Last())
 		{
-			DebugUntangleableObjects += TEXT("\n\n");
+			DebugAdjacencyList += TEXT("\n\n");
 		}
 	}
 }
