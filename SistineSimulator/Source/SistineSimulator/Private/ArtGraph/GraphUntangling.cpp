@@ -11,11 +11,14 @@ AGraphUntangling::AGraphUntangling()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-void AGraphUntangling::OnConstruction(const FTransform &Transform)
-{
-	Super::OnConstruction(Transform);
-	// FindUntangleableActorsWithTag();
-}
+// void AGraphUntangling::OnConstruction(const FTransform &Transform)
+// {
+// 	Super::OnConstruction(Transform);
+// 	// Always call RefreshUntangleableActors on construction,
+// 	// but add a slight delay to ensure actors are fully initialized
+// 	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+// 													  { RefreshUntangleableActors(); });
+// }
 
 void AGraphUntangling::RefreshUntangleableActors()
 {
@@ -49,6 +52,9 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 		UntangleableObjects.Empty();
 		return;
 	}
+
+	// Explicitly update the adjacency list before using it
+	TargetedGraph->UpdateAdjacencyList();
 
 	UntangleableObjects.Empty();
 	const TArray<TArray<FGameplayTag>> &AdjacencyList = TargetedGraph->GetAdjacencyList();
@@ -84,6 +90,7 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 			if (!RequiredPrimaryTag.IsValid())
 			{
 				UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Encountered invalid tag in TargetGraph's adjacency list. Skipping."));
+				InnerArray.Add(nullptr); // Add null to maintain array structure
 				continue;
 			}
 
@@ -113,13 +120,17 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 						// Found a matching actor
 						TScriptInterface<IUntangleable> UntangleableActor;
 						UntangleableActor.SetObject(Actor);
-						UntangleableActor.SetInterface(Cast<IUntangleable>(Actor)); // Safe cast
+						// UntangleableActor.SetInterface(Cast<IUntangleable>(Actor)); // Safe cast
 
 						InnerArray.Add(UntangleableActor);
 						UE_LOG(LogTemp, Display, TEXT("Matched Actor %s for Primary Tag %s (Required Secondary Tags: %s)"), *Actor->GetName(), *RequiredPrimaryTag.ToString(), *SecondaryTags.ToString());
 						bFoundMatchingActor = true;
 						break; // Stop searching for actors for this specific RequiredPrimaryTag
 					}
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Actor %s was returned by GetAllActorsWithInterface but doesn't implement Untangleable"), *Actor->GetName());
 				}
 
 			} // End loop through FoundActors
@@ -212,7 +223,7 @@ void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent &PropertyCha
 		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(AGraphUntangling, TargetedGraph) || PropertyName == GET_MEMBER_NAME_CHECKED(AGraphUntangling, SecondaryTags))
 		{
-			UE_LOG(LogTemp, Log, TEXT("Relevant property changed: %s"), *PropertyName.ToString());
+			UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::PostEditChangeProperty: Relevant property changed: %s"), *PropertyName.ToString());
 			RefreshUntangleableActors();
 		}
 	}

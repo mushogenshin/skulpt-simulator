@@ -38,8 +38,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	// Called when the actor is constructed or properties are changed in the editor
-	virtual void OnConstruction(const FTransform &Transform) override;
+	// // Called when the actor is constructed or properties are changed in the editor
+	// virtual void OnConstruction(const FTransform &Transform) override;
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
 
