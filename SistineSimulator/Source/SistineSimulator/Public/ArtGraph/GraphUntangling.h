@@ -18,7 +18,7 @@ public:
 	AGraphUntangling();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
-	TObjectPtr<UGraphElement> TargetGraph;
+	TObjectPtr<UGraphElement> TargetedGraph;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph", meta = (ToolTip = "Additional tags to filter actors by. Actors must have the primary tag from the graph AND all of these secondary tags."))
 	FGameplayTagContainer SecondaryTags;
@@ -40,6 +40,8 @@ protected:
 
 	// Called when the actor is constructed or properties are changed in the editor
 	virtual void OnConstruction(const FTransform &Transform) override;
+
+	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
 
 private:
 	// Debug property to display the constructed UntangleableObjects list in the editor

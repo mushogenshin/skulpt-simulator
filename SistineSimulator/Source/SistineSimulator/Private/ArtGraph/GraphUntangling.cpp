@@ -44,7 +44,7 @@ void AGraphUntangling::Tick(float DeltaTime)
 void AGraphUntangling::FindUntangleableActorsWithTag()
 {
 	// If TargetGraph is not set, clear the list and the last constructed graph reference.
-	if (!TargetGraph)
+	if (!TargetedGraph)
 	{
 		if (LastConstructedTargetGraph != nullptr) // Only clear if it was previously set
 		{
@@ -59,24 +59,22 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 	// If the current TargetGraph and SecondaryTags are the same as the ones used last time, skip reconstruction.
 	// Note: This simple check might not catch all cases if SecondaryTags changes but TargetGraph doesn't.
 	// A more robust check would involve comparing SecondaryTags as well.
-	if (TargetGraph == LastConstructedTargetGraph)
+	if (TargetedGraph == LastConstructedTargetGraph)
 	{
 		return;
 	}
-
-	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: TargetGraph (%s) or SecondaryTags changed, or first run. Reconstructing UntangleableObjects."), *TargetGraph->GetName());
 
 	UntangleableObjects.Empty();
 	DebugUntangleableObjects.Empty();	  // Clear debug string initially
 	LastConstructedTargetGraph = nullptr; // Clear last graph in case construction fails below
 
 	// Ensure the graph's adjacency list is up-to-date
-	TargetGraph->UpdateAdjacencyList();
-	const TArray<TArray<FGameplayTag>> &AdjacencyList = TargetGraph->GetAdjacencyList();
+	TargetedGraph->UpdateAdjacencyList();
+	const TArray<TArray<FGameplayTag>> &AdjacencyList = TargetedGraph->GetAdjacencyList();
 
 	if (AdjacencyList.IsEmpty())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: TargetGraph %s has an empty adjacency list."), *TargetGraph->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: TargetGraph %s has an empty adjacency list."), *TargetedGraph->GetName());
 		return; // Keep LastConstructedTargetGraph null
 	}
 
@@ -159,13 +157,13 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 
 	if (bConstructionSuccessful)
 	{
-		UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Successfully constructed UntangleableObjects with %d nodes for graph %s."), UntangleableObjects.Num(), *TargetGraph->GetName());
+		UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Successfully constructed UntangleableObjects with %d nodes for graph %s."), UntangleableObjects.Num(), *TargetedGraph->GetName());
 		// Update the last constructed graph reference only on successful completion
-		LastConstructedTargetGraph = TargetGraph;
+		LastConstructedTargetGraph = TargetedGraph;
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Finished constructing UntangleableObjects for graph %s, but some actors were missing."), *TargetGraph->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindUntangleableActorsWithTag: Finished constructing UntangleableObjects for graph %s, but some actors were missing."), *TargetedGraph->GetName());
 		// Keep LastConstructedTargetGraph null to allow reconstruction attempt on next run
 	}
 }
@@ -173,56 +171,71 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 void AGraphUntangling::FormatDebugUntangleableObjects()
 {
 	DebugUntangleableObjects.Empty(); // Clear the debug string
+	UE_LOG(LogTemp, Log, TEXT("TODO: format the debug string for UntangleableObjects."));
 
-	for (const TArray<TScriptInterface<IUntangleable>> &NodeConnections : UntangleableObjects)
+	// for (const TArray<TScriptInterface<IUntangleable>> &NodeConnections : UntangleableObjects)
+	// {
+	// 	FString KeyName = TEXT("INVALID_NODE"); // Default if node is missing/invalid
+	// 	if (NodeConnections.Num() > 0)
+	// 	{
+	// 		if (NodeConnections[0].GetObject())
+	// 		{
+	// 			// Use the object's name directly
+	// 			KeyName = NodeConnections[0].GetObject()->GetName();
+	// 		}
+	// 		else
+	// 		{
+	// 			KeyName = TEXT("NULL_NODE"); // Node entry exists but is null
+	// 		}
+
+	// 		DebugUntangleableObjects += FString::Printf(TEXT("%s -> ["), *KeyName);
+
+	// 		// Start from index 1 to get neighbors
+	// 		for (int32 i = 1; i < NodeConnections.Num(); ++i)
+	// 		{
+	// 			if (NodeConnections[i].GetObject())
+	// 			{
+	// 				// Use the neighbor object's name directly
+	// 				FString NeighborName = NodeConnections[i].GetObject()->GetName();
+	// 				DebugUntangleableObjects += NeighborName;
+	// 			}
+	// 			else
+	// 			{
+	// 				DebugUntangleableObjects += TEXT("NULL"); // Handle null neighbor entries
+	// 			}
+
+	// 			if (i < NodeConnections.Num() - 1)
+	// 			{
+	// 				DebugUntangleableObjects += TEXT(", ");
+	// 			}
+	// 		}
+	// 		DebugUntangleableObjects += TEXT("]");
+	// 	}
+	// 	else
+	// 	{
+	// 		// Handle case where the inner array itself is empty (shouldn't happen with current logic but good practice)
+	// 		DebugUntangleableObjects += TEXT("EMPTY_NODE_ARRAY");
+	// 	}
+
+	// 	// Add newline for readability, check if it's not the last element
+	// 	if (&NodeConnections != &UntangleableObjects.Last())
+	// 	{
+	// 		DebugUntangleableObjects += TEXT("\n\n");
+	// 	}
+	// }
+}
+
+void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if (PropertyChangedEvent.Property)
 	{
-		FString KeyName = TEXT("INVALID_NODE"); // Default if node is missing/invalid
-		if (NodeConnections.Num() > 0)
+		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(AGraphUntangling, TargetedGraph) || PropertyName == GET_MEMBER_NAME_CHECKED(AGraphUntangling, SecondaryTags))
 		{
-			if (NodeConnections[0].GetObject())
-			{
-				// Use the object's name directly
-				KeyName = NodeConnections[0].GetObject()->GetName();
-			}
-			else
-			{
-				KeyName = TEXT("NULL_NODE"); // Node entry exists but is null
-			}
-
-			DebugUntangleableObjects += FString::Printf(TEXT("%s -> ["), *KeyName);
-
-			// Start from index 1 to get neighbors
-			for (int32 i = 1; i < NodeConnections.Num(); ++i)
-			{
-				if (NodeConnections[i].GetObject())
-				{
-					// Use the neighbor object's name directly
-					FString NeighborName = NodeConnections[i].GetObject()->GetName();
-					DebugUntangleableObjects += NeighborName;
-				}
-				else
-				{
-					DebugUntangleableObjects += TEXT("NULL"); // Handle null neighbor entries
-				}
-
-				if (i < NodeConnections.Num() - 1)
-				{
-					DebugUntangleableObjects += TEXT(", ");
-				}
-			}
-			DebugUntangleableObjects += TEXT("]");
-		}
-		else
-		{
-			// Handle case where the inner array itself is empty (shouldn't happen with current logic but good practice)
-			DebugUntangleableObjects += TEXT("EMPTY_NODE_ARRAY");
-		}
-
-		// Add newline for readability, check if it's not the last element
-		if (&NodeConnections != &UntangleableObjects.Last())
-		{
-			DebugUntangleableObjects += TEXT("\n\n");
+			UE_LOG(LogTemp, Log, TEXT("Relevant property changed: %s"), *PropertyName.ToString());
+			// RefreshUntangleableActors();
 		}
 	}
 }
-
