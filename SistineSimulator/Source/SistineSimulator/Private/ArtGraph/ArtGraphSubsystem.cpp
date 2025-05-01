@@ -90,6 +90,7 @@ void UArtGraphSubsystem::Initialize(FSubsystemCollectionBase &Collection)
 		{
 			// Ensure the asset is fully loaded before accessing properties like ReferencedElements
 			GraphElement->ConditionalPostLoad();
+			GraphElement->UpdateAdjacencyList(); // Update the adjacency list for the graph element
 			// Register without clearing previous references during initialization,
 			// as the map is empty initially.
 			RegisterGraph(GraphElement, false);
