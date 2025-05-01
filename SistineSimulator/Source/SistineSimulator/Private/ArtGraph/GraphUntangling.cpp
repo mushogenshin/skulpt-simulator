@@ -53,8 +53,8 @@ void AGraphUntangling::FindUntangleableActorsByTags()
 		return;
 	}
 
-	// // Explicitly update the adjacency list before using it
-	// TargetedGraph->UpdateAdjacencyList();
+	// Explicitly update the adjacency list before using it
+	TargetedGraph->UpdateAdjacencyList();
 
 	UntangleableAdjacencyList.Empty();
 	const TArray<TArray<FGameplayTag>> &AdjacencyList = TargetedGraph->GetAdjacencyList();
