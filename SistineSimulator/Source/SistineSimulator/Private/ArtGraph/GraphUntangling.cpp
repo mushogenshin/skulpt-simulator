@@ -14,12 +14,12 @@ AGraphUntangling::AGraphUntangling()
 void AGraphUntangling::OnConstruction(const FTransform &Transform)
 {
 	Super::OnConstruction(Transform);
-	FindUntangleableActorsWithTag();
+	// FindUntangleableActorsWithTag();
 }
 
 void AGraphUntangling::RefreshUntangleableActors()
 {
-	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::RefreshUntangleableActors: Manually refreshing UntangleableObjects."));
+	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::RefreshUntangleableActors."));
 	FindUntangleableActorsWithTag();
 	FormatDebugUntangleableObjects();
 }
@@ -51,7 +51,6 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 	}
 
 	UntangleableObjects.Empty();
-
 	const TArray<TArray<FGameplayTag>> &AdjacencyList = TargetedGraph->GetAdjacencyList();
 
 	if (AdjacencyList.IsEmpty())
@@ -137,7 +136,6 @@ void AGraphUntangling::FindUntangleableActorsWithTag()
 
 		UntangleableObjects.Add(InnerArray);
 	} // End loop through AdjacencyList
-	// --- End Refactored Logic ---
 
 	if (bConstructionSuccessful)
 	{
@@ -214,7 +212,7 @@ void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent &PropertyCha
 		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(AGraphUntangling, TargetedGraph) || PropertyName == GET_MEMBER_NAME_CHECKED(AGraphUntangling, SecondaryTags))
 		{
-			UE_LOG(LogTemp, Log, TEXT("Relevant property changed: %s. Refreshing Untangleable Actors."), *PropertyName.ToString());
+			UE_LOG(LogTemp, Log, TEXT("Relevant property changed: %s"), *PropertyName.ToString());
 			RefreshUntangleableActors();
 		}
 	}
