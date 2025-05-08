@@ -45,7 +45,7 @@ protected:
 
 private:
 	// Debug property to display the constructed UntangleableObjects list in the editor
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", MultiLine = true))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArtGraph", meta = (AllowPrivateAccess = "true", MultiLine = true))
 	FString DebugAdjacencyList;
 
 	// Stores the TargetGraph used in the last successful OnConstruction run
