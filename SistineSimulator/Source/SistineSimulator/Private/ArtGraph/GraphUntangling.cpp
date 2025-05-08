@@ -7,8 +7,11 @@
 // Sets default values
 AGraphUntangling::AGraphUntangling()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	// Create StaticMeshComponent and set as root
+	PreviewMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
+	SetRootComponent(PreviewMesh);
 }
 
 // void AGraphUntangling::OnConstruction(const FTransform &Transform)
@@ -251,3 +254,4 @@ void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 		}
 	}
 }
+

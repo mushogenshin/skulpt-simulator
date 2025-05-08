@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/StaticMeshComponent.h"
 #include "ArtGraph.h"
 #include "Untangleable.h"
 #include "GraphUntangling.generated.h"
@@ -64,7 +65,11 @@ private:
 	// Helper function to format the DebugUntangleableObjects string
 	void FormatDebugUntangleableObjects();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* PreviewMesh;
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 };
+
