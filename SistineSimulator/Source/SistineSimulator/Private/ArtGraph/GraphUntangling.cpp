@@ -19,11 +19,14 @@ AGraphUntangling::AGraphUntangling()
 	PreviewMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	SetRootComponent(PreviewMesh);
 
-	// Attempt to load the static mesh asset
+	// Set PreviewMesh to be hidden in game 
+	PreviewMesh->SetHiddenInGame(true);
+	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(STATIC_MESH_ASSET_PATH);
 	if (MeshAsset.Succeeded())
 	{
 		PreviewMesh->SetStaticMesh(MeshAsset.Object);
+		PreviewMesh->SetWorldScale3D(FVector(3.0f));
 	}
 	else
 	{
