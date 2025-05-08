@@ -5,6 +5,12 @@
 #include "ArtGraph/Untangleable.h"
 
 // Sets default values
+namespace
+{
+	constexpr TCHAR STATIC_MESH_ASSET_PATH[] = TEXT(
+		"/Engine/Functions/Engine_MaterialFunctions02/ExampleContent/PivotPainter2/SimplePivotPainterExample.SimplePivotPainterExample");
+}
+
 AGraphUntangling::AGraphUntangling()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -12,9 +18,20 @@ AGraphUntangling::AGraphUntangling()
 	// Create StaticMeshComponent and set as root
 	PreviewMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	SetRootComponent(PreviewMesh);
+
+	// Attempt to load the static mesh asset
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(STATIC_MESH_ASSET_PATH);
+	if (MeshAsset.Succeeded())
+	{
+		PreviewMesh->SetStaticMesh(MeshAsset.Object);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to find static mesh asset at %s"), STATIC_MESH_ASSET_PATH);
+	}
 }
 
-// void AGraphUntangling::OnConstruction(const FTransform &Transform)
+// void AGraphUntangling::OnConstruction(const FTransform &Transform)// void AGraphUntangling::OnConstruction(const FTransform &Transform)
 // {
 // 	Super::OnConstruction(Transform);
 // 	// Always call RefreshUntangleableActors on construction,
@@ -254,4 +271,3 @@ void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 		}
 	}
 }
-
