@@ -33,10 +33,12 @@ class SISTINESIMULATOR_API UGraphElement : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Self")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Self",
+		meta = (ToolTip = "The tag associated with this graph element."))
 	FGameplayTag Tag;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Content")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Content",
+		meta = (ToolTip = "The edges this graph element contains."))
 	TArray<FGraphEdge> Edges;
 
 	// Get the cached adjacency list
@@ -47,18 +49,19 @@ public:
 	void UpdateAdjacencyList();
 
 	// Get all elements referenced by this graph
-	TArray<UGraphElement *> GetReferencedElements() const;
+	TArray<UGraphElement*> GetReferencedElements() const;
 
 protected:
 	// Override PostEditChangeProperty to update the adjacency list when properties change
-	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 private:
 	// Cache for the adjacency list
 	TArray<TArray<FGameplayTag>> CachedAdjacencyList;
 
 	// Debug property to display the cached adjacency list in the editor
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", MultiLine = true))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug",
+		meta = (AllowPrivateAccess = "true", MultiLine = true))
 	FString DebugAdjacencyList;
 
 	// Helper function to calculate the adjacency list and store it in CachedAdjacencyList
