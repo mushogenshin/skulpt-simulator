@@ -25,7 +25,7 @@ public:
 	FGameplayTagContainer SecondaryTags;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph", meta = (ToolTip = "The K constant used in the Fruchterman-Reingold algorithm."))
-	float KConstant;
+	float KConstantUser;
 
 	// Array of arrays of objects that implement the Untangleable interface, structured like an adjacency list.
 	// The first element of each inner array corresponds to a node, and the rest are its neighbors.
@@ -53,8 +53,11 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArtGraph", meta = (AllowPrivateAccess = "true", MultiLine = true))
 	FString DebugAdjacencyList;
 
+	float KConstant;
 	float KSquared;
 	float Temperature;
+	uint32 NumNodes;
+	TArray<FVector> Positions;
 	TArray<FVector> Movements;
 	uint32 CurrentIter;
 	uint32 MaxIter;
@@ -71,4 +74,8 @@ private:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	// Fruchterman-Reingold step for current ActorAdjacencyList
+	UFUNCTION(CallInEditor, Category = "ArtGraph")
+	void DoStep();
 };

@@ -31,6 +31,14 @@ AGraphUntangling::AGraphUntangling()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Failed to find static mesh asset at %s"), STATIC_MESH_ASSET_PATH);
 	}
+
+	// Parameters
+	KConstant = KConstantUser > 0.f ? KConstantUser : 15.f;
+	KSquared = KConstant * KConstant;
+	NumNodes = ActorAdjacencyList.Num();
+	Temperature = 10.f * FMath::Sqrt(static_cast<float>(NumNodes));
+	Positions.SetNum(NumNodes);
+	Movements.SetNumZeroed(NumNodes);
 }
 
 // void AGraphUntangling::OnConstruction(const FTransform &Transform)// void AGraphUntangling::OnConstruction(const FTransform &Transform)
@@ -293,5 +301,114 @@ void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent &PropertyCha
 				   *PropertyName.ToString());
 			RefreshUntangleableActors();
 		}
+	}
+}
+
+void AGraphUntangling::DoStep()
+{
+	// Gather current positions (XY only)
+	for (int32 i = 0; i < NumNodes; ++i)
+	{
+		AActor *NodeActor = (ActorAdjacencyList[i].Num() > 0) ? ActorAdjacencyList[i][0] : nullptr;
+		if (NodeActor)
+		{
+			const FVector Loc = NodeActor->GetActorLocation();
+			Positions[i] = FVector2D(Loc.X, Loc.Y);
+		}
+		else
+		{
+			Positions[i] = FVector2D::ZeroVector;
+		}
+	}
+
+	// Repulsion between all pairs
+	for (int32 v = 0; v < NumNodes; ++v)
+	{
+		for (int32 u = v + 1; u < NumNodes; ++u)
+		{
+			if (v == u)
+				continue;
+			FVector2D Delta = Positions[v] - Positions[u];
+			float Dist = Delta.Size();
+			if (Dist < KINDA_SMALL_NUMBER)
+				continue;
+			if (Dist > 1000.f)
+				continue;
+
+			float Repulsion = KSquared / Dist;
+			FVector2D Dir = Delta / Dist;
+			Movements[v] += Dir * Repulsion;
+			Movements[u] -= Dir * Repulsion;
+		}
+	}
+
+	// Attraction along edges
+	for (int32 v = 0; v < NumNodes; ++v)
+	{
+		const TArray<AActor *> &NodeList = ActorAdjacencyList[v];
+		AActor *NodeActor = (NodeList.Num() > 0) ? NodeList[0] : nullptr;
+		if (!NodeActor)
+			continue;
+
+		for (int32 n = 1; n < NodeList.Num(); ++n)
+		{
+			AActor *NeighborActor = NodeList[n];
+			if (!NeighborActor)
+				continue;
+
+			// Find index of neighbor in ActorAdjacencyList
+			int32 NeighborIdx = INDEX_NONE;
+			for (int32 idx = 0; idx < NumNodes; ++idx)
+			{
+				if (ActorAdjacencyList[idx].Num() > 0 && ActorAdjacencyList[idx][0] == NeighborActor)
+				{
+					NeighborIdx = idx;
+					break;
+				}
+			}
+			if (NeighborIdx == INDEX_NONE || NeighborIdx == v)
+				continue;
+			if (NeighborIdx > v)
+				continue; // Only process each edge once
+
+			FVector2D Delta = Positions[v] - Positions[NeighborIdx];
+			float Dist = Delta.Size();
+			if (Dist < KINDA_SMALL_NUMBER)
+				continue;
+
+			float Attraction = (Dist * Dist) / KConstant;
+			FVector2D Dir = Delta / Dist;
+			Movements[v] -= Dir * Attraction;
+			Movements[NeighborIdx] += Dir * Attraction;
+		}
+	}
+
+	// Cap movement by temperature and apply
+	for (int32 v = 0; v < NumNodes; ++v)
+	{
+		float MoveNorm = Movements[v].Size();
+		if (MoveNorm < 1.f)
+			continue;
+		float CappedNorm = FMath::Min(MoveNorm, Temperature);
+		FVector2D CappedMove = Movements[v] / MoveNorm * CappedNorm;
+
+		AActor *NodeActor = (ActorAdjacencyList[v].Num() > 0) ? ActorAdjacencyList[v][0] : nullptr;
+		if (NodeActor)
+		{
+			FVector Loc = NodeActor->GetActorLocation();
+			Loc.X += CappedMove.X;
+			Loc.Y += CappedMove.Y;
+			NodeActor->SetActorLocation(Loc);
+		}
+	}
+
+	// Cool down
+	if (Temperature > 1.5f)
+	{
+		Temperature *= 0.85f;
+	}
+	else
+	{
+		Temperature = 1.5f;
 	}
 }
