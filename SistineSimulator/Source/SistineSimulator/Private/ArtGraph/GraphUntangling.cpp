@@ -4,7 +4,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "ArtGraph/Untangleable.h"
 
-// Sets default values
 namespace
 {
 	constexpr TCHAR STATIC_MESH_ASSET_PATH[] = TEXT(
@@ -228,15 +227,15 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 {
 	DebugAdjacencyList.Empty(); // Clear the debug string
 
-	for (const TArray<TScriptInterface<IUntangleable>> &NodeConnections : UntangleableAdjacencyList)
+	for (const TArray<AActor *> &NodeConnections : ActorAdjacencyList)
 	{
 		FString KeyName = TEXT("INVALID_NODE"); // Default if node is missing/invalid
 		if (NodeConnections.Num() > 0)
 		{
-			if (NodeConnections[0].GetObject())
+			if (NodeConnections[0])
 			{
-				// Use the object's name directly
-				KeyName = NodeConnections[0].GetObject()->GetName();
+				// Use the actor's name directly
+				KeyName = NodeConnections[0]->GetName();
 			}
 			else
 			{
@@ -248,10 +247,10 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 			// Start from index 1 to get neighbors
 			for (int32 i = 1; i < NodeConnections.Num(); ++i)
 			{
-				if (NodeConnections[i].GetObject())
+				if (NodeConnections[i])
 				{
-					// Use the neighbor object's name directly
-					FString NeighborName = NodeConnections[i].GetObject()->GetName();
+					// Use the neighbor actor's name directly
+					FString NeighborName = NodeConnections[i]->GetName();
 					DebugAdjacencyList += NeighborName;
 				}
 				else
@@ -268,12 +267,12 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 		}
 		else
 		{
-			// Handle case where the inner array itself is empty (shouldn't happen with current logic but good practice)
+			// Handle case where the inner array itself is empty
 			DebugAdjacencyList += TEXT("EMPTY_NODE_ARRAY");
 		}
 
 		// Add newline for readability, check if it's not the last element
-		if (&NodeConnections != &UntangleableAdjacencyList.Last())
+		if (&NodeConnections != &ActorAdjacencyList.Last())
 		{
 			DebugAdjacencyList += TEXT("\n\n");
 		}

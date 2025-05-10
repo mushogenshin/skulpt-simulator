@@ -33,7 +33,6 @@ public:
 
 	// Array of arrays of AActor pointers, mirroring UntangleableAdjacencyList.
 	// The first element of each inner array corresponds to a node actor, and the rest are its neighbor actors.
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArtGraph", meta = (AllowPrivateAccess = "true"))
 	TArray<TArray<AActor *>> ActorAdjacencyList;
 
 	// Function to manually refresh the UntangleableObjects list
