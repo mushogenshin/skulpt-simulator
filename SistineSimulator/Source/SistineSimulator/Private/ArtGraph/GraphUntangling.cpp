@@ -31,14 +31,16 @@ AGraphUntangling::AGraphUntangling()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Failed to find static mesh asset at %s"), STATIC_MESH_ASSET_PATH);
 	}
+}
+
+// Called when the game starts or when spawned
+void AGraphUntangling::BeginPlay()
+{
+	Super::BeginPlay();
 
 	// Parameters
-	KConstant = KConstantUser > 0.f ? KConstantUser : 15.f;
-	KSquared = KConstant * KConstant;
-	NumNodes = ActorAdjacencyList.Num();
-	Temperature = 10.f * FMath::Sqrt(static_cast<float>(NumNodes));
-	Positions.SetNum(NumNodes);
-	Movements.SetNumZeroed(NumNodes);
+	RefreshUntangleableActors();
+	InitializeGraphParameters();
 }
 
 // void AGraphUntangling::OnConstruction(const FTransform &Transform)// void AGraphUntangling::OnConstruction(const FTransform &Transform)
@@ -49,6 +51,21 @@ AGraphUntangling::AGraphUntangling()
 // 	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
 // 													  { RefreshUntangleableActors(); });
 // }
+
+void AGraphUntangling::InitializeGraphParameters()
+{
+	KConstant = KConstantUser > 0.f ? KConstantUser : 15.f;
+	KSquared = KConstant * KConstant;
+	UE_LOG(LogTemp, Log, TEXT("KConstant: %f, KSquared: %f"), KConstant, KSquared);
+
+	NumNodes = ActorAdjacencyList.Num();
+	Temperature = 10.f * FMath::Sqrt(static_cast<float>(NumNodes));
+	Positions.SetNum(NumNodes);
+	Movements.SetNumZeroed(NumNodes);
+
+	UE_LOG(LogTemp, Log, TEXT("Graph Parameters Initialized: NumNodes=%d, Temperature=%.2f, PositionsSize=%d, MovementsSize=%d"),
+		   NumNodes, Temperature, Positions.Num(), Movements.Num());
+}
 
 void AGraphUntangling::RefreshUntangleableActors()
 {
@@ -82,16 +99,6 @@ void AGraphUntangling::RefreshUntangleableActors()
 	}
 
 	FormatDebugUntangleableObjects();
-}
-
-// Called when the game starts or when spawned
-void AGraphUntangling::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// Optionally re-run construction logic if needed at runtime,
-	// though OnConstruction handles editor-time setup.
-	// OnConstruction(GetActorTransform());
 }
 
 void AGraphUntangling::FindUntangleableActorsByTags()
@@ -319,8 +326,6 @@ void AGraphUntangling::DoStep()
 	{
 		for (int32 u = v + 1; u < NumNodes; ++u)
 		{
-			// if (v == u)
-			// 	continue;
 			FVector Delta = Positions[v] - Positions[u];
 			float Dist = Delta.Size();
 			if (Dist < KINDA_SMALL_NUMBER)
@@ -332,6 +337,17 @@ void AGraphUntangling::DoStep()
 			FVector Dir = Delta / Dist;
 			Movements[v] += Dir * Repulsion;
 			Movements[u] -= Dir * Repulsion;
+
+			// Debug print for repulsion
+			AActor *ActorV = (ActorAdjacencyList[v].Num() > 0) ? ActorAdjacencyList[v][0] : nullptr;
+			AActor *ActorU = (ActorAdjacencyList[u].Num() > 0) ? ActorAdjacencyList[u][0] : nullptr;
+			if (ActorV && ActorU)
+			{
+				FString Msg = FString::Printf(TEXT("Repulsion: %s <-> %s | Dist: %.2f | Rep: %.2f"),
+											  *ActorV->GetName(), *ActorU->GetName(), Dist, Repulsion);
+				if (GEngine)
+					GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Cyan, Msg);
+			}
 		}
 	}
 
@@ -373,6 +389,17 @@ void AGraphUntangling::DoStep()
 			FVector Dir = Delta / Dist;
 			Movements[v] -= Dir * Attraction;
 			Movements[NeighborIdx] += Dir * Attraction;
+
+			// Debug print for attraction
+			AActor *ActorV = NodeActor;
+			AActor *ActorN = NeighborActor;
+			if (ActorV && ActorN)
+			{
+				FString Msg = FString::Printf(TEXT("Attraction: %s <-> %s | Dist: %.2f | Attr: %.2f"),
+											  *ActorV->GetName(), *ActorN->GetName(), Dist, Attraction);
+				if (GEngine)
+					GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Orange, Msg);
+			}
 		}
 	}
 
@@ -389,6 +416,12 @@ void AGraphUntangling::DoStep()
 		if (NodeActor)
 		{
 			NodeActor->SetActorLocation(NodeActor->GetActorLocation() + CappedMove);
+
+			// Debug print for movement
+			FString Msg = FString::Printf(TEXT("Move: %s | Δ: (%.2f, %.2f, %.2f) | Norm: %.2f"),
+										  *NodeActor->GetName(), CappedMove.X, CappedMove.Y, CappedMove.Z, CappedNorm);
+			if (GEngine)
+				GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, Msg);
 		}
 	}
 

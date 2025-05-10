@@ -68,6 +68,9 @@ private:
 	// Helper function to format the DebugUntangleableObjects string
 	void FormatDebugUntangleableObjects();
 
+	// Helper function to initialize graph parameters
+	void InitializeGraphParameters();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent *PreviewMesh;
 
@@ -76,6 +79,5 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// Fruchterman-Reingold step for current ActorAdjacencyList
-	UFUNCTION(CallInEditor, Category = "ArtGraph")
 	void DoStep();
 };
