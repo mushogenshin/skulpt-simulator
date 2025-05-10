@@ -24,7 +24,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph", meta = (ToolTip = "Additional tags to filter actors by. Actors must have the primary tag from the graph AND all of these secondary tags."))
 	FGameplayTagContainer SecondaryTags;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph", meta = (ToolTip = "The K constant used in the Fruchterman-Reingold algorithm."))
 	float KConstant;
 
 	// Array of arrays of objects that implement the Untangleable interface, structured like an adjacency list.
@@ -66,10 +66,9 @@ private:
 	void FormatDebugUntangleableObjects();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* PreviewMesh;
+	UStaticMeshComponent *PreviewMesh;
 
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 };
-
