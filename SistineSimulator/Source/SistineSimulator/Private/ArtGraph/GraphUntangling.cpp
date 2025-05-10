@@ -94,12 +94,6 @@ void AGraphUntangling::BeginPlay()
 	// OnConstruction(GetActorTransform());
 }
 
-// Called every frame
-void AGraphUntangling::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
 void AGraphUntangling::FindUntangleableActorsByTags()
 {
 	// If TargetGraph is not set, clear the list and the last constructed graph reference.
@@ -306,18 +300,17 @@ void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent &PropertyCha
 
 void AGraphUntangling::DoStep()
 {
-	// Gather current positions (XY only)
+	// Gather current positions
 	for (int32 i = 0; i < NumNodes; ++i)
 	{
 		AActor *NodeActor = (ActorAdjacencyList[i].Num() > 0) ? ActorAdjacencyList[i][0] : nullptr;
 		if (NodeActor)
 		{
-			const FVector Loc = NodeActor->GetActorLocation();
-			Positions[i] = FVector2D(Loc.X, Loc.Y);
+			Positions[i] = NodeActor->GetActorLocation();
 		}
 		else
 		{
-			Positions[i] = FVector2D::ZeroVector;
+			Positions[i] = FVector::ZeroVector;
 		}
 	}
 
@@ -326,9 +319,9 @@ void AGraphUntangling::DoStep()
 	{
 		for (int32 u = v + 1; u < NumNodes; ++u)
 		{
-			if (v == u)
-				continue;
-			FVector2D Delta = Positions[v] - Positions[u];
+			// if (v == u)
+			// 	continue;
+			FVector Delta = Positions[v] - Positions[u];
 			float Dist = Delta.Size();
 			if (Dist < KINDA_SMALL_NUMBER)
 				continue;
@@ -336,7 +329,7 @@ void AGraphUntangling::DoStep()
 				continue;
 
 			float Repulsion = KSquared / Dist;
-			FVector2D Dir = Delta / Dist;
+			FVector Dir = Delta / Dist;
 			Movements[v] += Dir * Repulsion;
 			Movements[u] -= Dir * Repulsion;
 		}
@@ -371,13 +364,13 @@ void AGraphUntangling::DoStep()
 			if (NeighborIdx > v)
 				continue; // Only process each edge once
 
-			FVector2D Delta = Positions[v] - Positions[NeighborIdx];
+			FVector Delta = Positions[v] - Positions[NeighborIdx];
 			float Dist = Delta.Size();
 			if (Dist < KINDA_SMALL_NUMBER)
 				continue;
 
 			float Attraction = (Dist * Dist) / KConstant;
-			FVector2D Dir = Delta / Dist;
+			FVector Dir = Delta / Dist;
 			Movements[v] -= Dir * Attraction;
 			Movements[NeighborIdx] += Dir * Attraction;
 		}
@@ -390,25 +383,28 @@ void AGraphUntangling::DoStep()
 		if (MoveNorm < 1.f)
 			continue;
 		float CappedNorm = FMath::Min(MoveNorm, Temperature);
-		FVector2D CappedMove = Movements[v] / MoveNorm * CappedNorm;
+		FVector CappedMove = Movements[v] / MoveNorm * CappedNorm;
 
 		AActor *NodeActor = (ActorAdjacencyList[v].Num() > 0) ? ActorAdjacencyList[v][0] : nullptr;
 		if (NodeActor)
 		{
-			FVector Loc = NodeActor->GetActorLocation();
-			Loc.X += CappedMove.X;
-			Loc.Y += CappedMove.Y;
-			NodeActor->SetActorLocation(Loc);
+			NodeActor->SetActorLocation(NodeActor->GetActorLocation() + CappedMove);
 		}
 	}
 
-	// Cool down
-	if (Temperature > 1.5f)
-	{
-		Temperature *= 0.85f;
-	}
-	else
-	{
-		Temperature = 1.5f;
-	}
+	// // Cool down
+	// if (Temperature > 1.5f)
+	// {
+	// 	Temperature *= 0.85f;
+	// }
+	// else
+	// {
+	// 	Temperature = 1.5f;
+	// }
+}
+
+void AGraphUntangling::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	DoStep();
 }
