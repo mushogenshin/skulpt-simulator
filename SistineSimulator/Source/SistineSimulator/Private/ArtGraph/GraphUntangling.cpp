@@ -330,6 +330,8 @@ void AGraphUntangling::DoStep()
 			float Dist = Delta.Size();
 			if (Dist < KINDA_SMALL_NUMBER)
 				continue;
+
+			// > 1000.0: not worth computing
 			if (Dist > 1000.f)
 				continue;
 
@@ -407,6 +409,7 @@ void AGraphUntangling::DoStep()
 	for (int32 v = 0; v < NumNodes; ++v)
 	{
 		float MoveNorm = Movements[v].Size();
+		// < 1.0: not worth computing
 		if (MoveNorm < 1.f)
 			continue;
 		float CappedNorm = FMath::Min(MoveNorm, Temperature);
@@ -425,15 +428,15 @@ void AGraphUntangling::DoStep()
 		}
 	}
 
-	// // Cool down
-	// if (Temperature > 1.5f)
-	// {
-	// 	Temperature *= 0.85f;
-	// }
-	// else
-	// {
-	// 	Temperature = 1.5f;
-	// }
+	// Cool down fast until we reach 1.5, then stay at low temperature
+	if (Temperature > 1.5f)
+	{
+		Temperature *= 0.85f;
+	}
+	else
+	{
+		Temperature = 1.5f;
+	}
 }
 
 void AGraphUntangling::Tick(float DeltaTime)
