@@ -31,6 +31,11 @@ public:
 	// The first element of each inner array corresponds to a node, and the rest are its neighbors.
 	TArray<TArray<TScriptInterface<IUntangleable>>> UntangleableAdjacencyList;
 
+	// Array of arrays of AActor pointers, mirroring UntangleableAdjacencyList.
+	// The first element of each inner array corresponds to a node actor, and the rest are its neighbor actors.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArtGraph", meta = (AllowPrivateAccess = "true"))
+	TArray<TArray<AActor *>> ActorAdjacencyList;
+
 	// Function to manually refresh the UntangleableObjects list
 	UFUNCTION(CallInEditor, Category = "ArtGraph", meta = (DisplayName = "Refresh Untangleable Actors"))
 	void RefreshUntangleableActors();
@@ -48,10 +53,6 @@ private:
 	// Debug property to display the constructed UntangleableObjects list in the editor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArtGraph", meta = (AllowPrivateAccess = "true", MultiLine = true))
 	FString DebugAdjacencyList;
-
-	// Stores the TargetGraph used in the last successful OnConstruction run
-	UPROPERTY(Transient) // Prevent saving this state
-	TObjectPtr<UGraphElement> LastConstructedTargetGraph;
 
 	float KSquared;
 	float Temperature;

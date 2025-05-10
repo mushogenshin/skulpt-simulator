@@ -19,9 +19,9 @@ AGraphUntangling::AGraphUntangling()
 	PreviewMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	SetRootComponent(PreviewMesh);
 
-	// Set PreviewMesh to be hidden in game 
+	// Set PreviewMesh to be hidden in game
 	PreviewMesh->SetHiddenInGame(true);
-	
+
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(STATIC_MESH_ASSET_PATH);
 	if (MeshAsset.Succeeded())
 	{
@@ -47,6 +47,33 @@ void AGraphUntangling::RefreshUntangleableActors()
 {
 	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::RefreshUntangleableActors."));
 	FindUntangleableActorsByTags();
+
+	// Clear the existing ActorAdjacencyList
+	ActorAdjacencyList.Empty();
+
+	// Populate ActorAdjacencyList based on UntangleableAdjacencyList
+	for (const TArray<TScriptInterface<IUntangleable>> &UntangleableInnerList : UntangleableAdjacencyList)
+	{
+		TArray<AActor *> ActorInnerList;
+		for (const TScriptInterface<IUntangleable> &UntangleableItem : UntangleableInnerList)
+		{
+			if (UntangleableItem.GetObject())
+			{
+				AActor *ActorItem = Cast<AActor>(UntangleableItem.GetObject());
+				if (ActorItem)
+				{
+					ActorInnerList.Add(ActorItem);
+				}
+				else
+				{
+					// Warn if the cast fails, though an IUntangleable should ideally be an AActor or derived from it
+					UE_LOG(LogTemp, Warning, TEXT("RefreshUntangleableActors: UntangleableItem %s is not an AActor."), *UntangleableItem.GetObject()->GetName());
+				}
+			}
+		}
+		ActorAdjacencyList.Add(ActorInnerList);
+	}
+
 	FormatDebugUntangleableObjects();
 }
 
@@ -72,8 +99,7 @@ void AGraphUntangling::FindUntangleableActorsByTags()
 	if (!TargetedGraph)
 	{
 		UE_LOG(LogTemp, Log,
-		       TEXT("AGraphUntangling::FindUntangleableActorsByTags: TargetGraph is null. Clearing UntangleableObjects."
-		       ));
+			   TEXT("AGraphUntangling::FindUntangleableActorsByTags: TargetGraph is null. Clearing UntangleableObjects."));
 		UntangleableAdjacencyList.Empty();
 		return;
 	}
@@ -82,27 +108,26 @@ void AGraphUntangling::FindUntangleableActorsByTags()
 	TargetedGraph->UpdateAdjacencyList();
 
 	UntangleableAdjacencyList.Empty();
-	const TArray<TArray<FGameplayTag>>& AdjacencyList = TargetedGraph->GetAdjacencyList();
+	const TArray<TArray<FGameplayTag>> &AdjacencyList = TargetedGraph->GetAdjacencyList();
 
 	if (AdjacencyList.IsEmpty())
 	{
 		UE_LOG(LogTemp, Warning,
-		       TEXT(
-			       "AGraphUntangling::FindUntangleableActorsByTags: TargetGraph %s has an empty adjacency list. Skipping."
-		       ), *TargetedGraph->GetName());
+			   TEXT(
+				   "AGraphUntangling::FindUntangleableActorsByTags: TargetGraph %s has an empty adjacency list. Skipping."),
+			   *TargetedGraph->GetName());
 		return;
 	}
 
 	// Find all actors in the current level that implement the Untangleable interface
-	TArray<AActor*> FoundActors;
+	TArray<AActor *> FoundActors;
 	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UUntangleable::StaticClass(), FoundActors);
 
 	if (FoundActors.Num() == 0)
 	{
 		UE_LOG(LogTemp, Warning,
-		       TEXT(
-			       "AGraphUntangling::FindUntangleableActorsByTags: No actors implementing Untangleable interface found in the level."
-		       ));
+			   TEXT(
+				   "AGraphUntangling::FindUntangleableActorsByTags: No actors implementing Untangleable interface found in the level."));
 		return;
 	}
 
@@ -110,20 +135,19 @@ void AGraphUntangling::FindUntangleableActorsByTags()
 	UntangleableAdjacencyList.Reserve(AdjacencyList.Num());
 
 	// Iterate through the desired graph structure (Adjacency List)
-	for (const TArray<FGameplayTag>& NodeConnections : AdjacencyList)
+	for (const TArray<FGameplayTag> &NodeConnections : AdjacencyList)
 	{
 		TArray<TScriptInterface<IUntangleable>> InnerArray;
 		InnerArray.Reserve(NodeConnections.Num());
 
 		// For each tag (node or neighbor) in the graph structure
-		for (const FGameplayTag& RequiredPrimaryTag : NodeConnections)
+		for (const FGameplayTag &RequiredPrimaryTag : NodeConnections)
 		{
 			if (!RequiredPrimaryTag.IsValid())
 			{
 				UE_LOG(LogTemp, Warning,
-				       TEXT(
-					       "AGraphUntangling::FindUntangleableActorsByTags: Encountered invalid tag in TargetGraph's adjacency list. Skipping."
-				       ));
+					   TEXT(
+						   "AGraphUntangling::FindUntangleableActorsByTags: Encountered invalid tag in TargetGraph's adjacency list. Skipping."));
 				InnerArray.Add(nullptr); // Add null to maintain array structure
 				continue;
 			}
@@ -135,7 +159,7 @@ void AGraphUntangling::FindUntangleableActorsByTags()
 
 			bool bFoundMatchingActor = false;
 			// Iterate through all found actors to find one that matches the required tags
-			for (AActor* Actor : FoundActors)
+			for (AActor *Actor : FoundActors)
 			{
 				if (!Actor)
 				{
@@ -156,8 +180,8 @@ void AGraphUntangling::FindUntangleableActorsByTags()
 
 						InnerArray.Add(UntangleableActor);
 						UE_LOG(LogTemp, Display,
-						       TEXT("Matched Actor %s for Primary Tag %s (Required Secondary Tags: %s)"),
-						       *Actor->GetName(), *RequiredPrimaryTag.ToString(), *SecondaryTags.ToString());
+							   TEXT("Matched Actor %s for Primary Tag %s (Required Secondary Tags: %s)"),
+							   *Actor->GetName(), *RequiredPrimaryTag.ToString(), *SecondaryTags.ToString());
 						bFoundMatchingActor = true;
 						break; // Stop searching for actors for this specific RequiredPrimaryTag
 					}
@@ -165,18 +189,16 @@ void AGraphUntangling::FindUntangleableActorsByTags()
 				else
 				{
 					UE_LOG(LogTemp, Warning,
-					       TEXT("Actor %s was returned by GetAllActorsWithInterface but doesn't implement Untangleable"
-					       ), *Actor->GetName());
+						   TEXT("Actor %s was returned by GetAllActorsWithInterface but doesn't implement Untangleable"), *Actor->GetName());
 				}
 			} // End loop through FoundActors
 
 			if (!bFoundMatchingActor)
 			{
 				UE_LOG(LogTemp, Warning,
-				       TEXT(
-					       "AGraphUntangling::FindUntangleableActorsByTags: Could not find any actor matching required tags: Primary=%s, Secondary=%s"
-				       ),
-				       *RequiredPrimaryTag.ToString(), *SecondaryTags.ToString());
+					   TEXT(
+						   "AGraphUntangling::FindUntangleableActorsByTags: Could not find any actor matching required tags: Primary=%s, Secondary=%s"),
+					   *RequiredPrimaryTag.ToString(), *SecondaryTags.ToString());
 				bConstructionSuccessful = false; // Mark as potentially incomplete
 				// Add a null entry to represent the missing actor in the structure
 				InnerArray.Add(nullptr);
@@ -189,16 +211,16 @@ void AGraphUntangling::FindUntangleableActorsByTags()
 	if (bConstructionSuccessful)
 	{
 		UE_LOG(LogTemp, Log,
-		       TEXT(
-			       "AGraphUntangling::FindUntangleableActorsByTags: Successfully constructed UntangleableObjects with %d nodes for graph %s."
-		       ), UntangleableAdjacencyList.Num(), *TargetedGraph->GetName());
+			   TEXT(
+				   "AGraphUntangling::FindUntangleableActorsByTags: Successfully constructed UntangleableObjects with %d nodes for graph %s."),
+			   UntangleableAdjacencyList.Num(), *TargetedGraph->GetName());
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning,
-		       TEXT(
-			       "AGraphUntangling::FindUntangleableActorsByTags: Finished constructing UntangleableObjects for graph %s, but some actors were missing."
-		       ), *TargetedGraph->GetName());
+			   TEXT(
+				   "AGraphUntangling::FindUntangleableActorsByTags: Finished constructing UntangleableObjects for graph %s, but some actors were missing."),
+			   *TargetedGraph->GetName());
 	}
 }
 
@@ -206,7 +228,7 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 {
 	DebugAdjacencyList.Empty(); // Clear the debug string
 
-	for (const TArray<TScriptInterface<IUntangleable>>& NodeConnections : UntangleableAdjacencyList)
+	for (const TArray<TScriptInterface<IUntangleable>> &NodeConnections : UntangleableAdjacencyList)
 	{
 		FString KeyName = TEXT("INVALID_NODE"); // Default if node is missing/invalid
 		if (NodeConnections.Num() > 0)
@@ -258,7 +280,7 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 	}
 }
 
-void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
@@ -266,10 +288,10 @@ void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 	{
 		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(AGraphUntangling, TargetedGraph) || PropertyName ==
-			GET_MEMBER_NAME_CHECKED(AGraphUntangling, SecondaryTags))
+																							GET_MEMBER_NAME_CHECKED(AGraphUntangling, SecondaryTags))
 		{
 			UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::PostEditChangeProperty: Relevant property changed: %s"),
-			       *PropertyName.ToString());
+				   *PropertyName.ToString());
 			RefreshUntangleableActors();
 		}
 	}
