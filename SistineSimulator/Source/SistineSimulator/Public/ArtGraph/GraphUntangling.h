@@ -55,7 +55,7 @@ private:
 
 	float KConstant;
 	float KSquared;
-	float Temperature;
+	float Temperature; // maximum allowable movement, used for cooling mechanism
 	uint32 NumNodes;
 	TArray<FVector> Positions;
 	TArray<FVector> Movements;

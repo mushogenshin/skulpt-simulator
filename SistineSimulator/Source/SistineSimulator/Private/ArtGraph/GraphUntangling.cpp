@@ -326,8 +326,13 @@ void AGraphUntangling::DoStep()
 	{
 		for (int32 u = v + 1; u < NumNodes; ++u)
 		{
+			// No need to repulse self
+			if (v == u)
+				continue;
+
 			FVector Delta = Positions[v] - Positions[u];
 			float Dist = Delta.Size();
+
 			if (Dist < KINDA_SMALL_NUMBER)
 				continue;
 
@@ -368,12 +373,14 @@ void AGraphUntangling::DoStep()
 				continue;
 
 			// Find index of neighbor in ActorAdjacencyList
+			// NOTE: Optimization: This could be done more efficiently by maintaining a map of actors to indices
 			int32 NeighborIdx = INDEX_NONE;
 			for (int32 idx = 0; idx < NumNodes; ++idx)
 			{
 				if (ActorAdjacencyList[idx].Num() > 0 && ActorAdjacencyList[idx][0] == NeighborActor)
 				{
 					NeighborIdx = idx;
+					// UE_LOG(LogTemp, Log, TEXT("Found Neighbor Index: %d for Neighbor Actor: %s"), NeighborIdx, *NeighborActor->GetName());
 					break;
 				}
 			}
@@ -409,7 +416,7 @@ void AGraphUntangling::DoStep()
 	for (int32 v = 0; v < NumNodes; ++v)
 	{
 		float MoveNorm = Movements[v].Size();
-		// < 1.0: not worth computing
+		// < 1.0: No need to cap movements for those that are already moving very little
 		if (MoveNorm < 1.f)
 			continue;
 		float CappedNorm = FMath::Min(MoveNorm, Temperature);
@@ -429,6 +436,7 @@ void AGraphUntangling::DoStep()
 	}
 
 	// Cool down fast until we reach 1.5, then stay at low temperature
+
 	if (Temperature > 1.5f)
 	{
 		Temperature *= 0.85f;
@@ -437,6 +445,9 @@ void AGraphUntangling::DoStep()
 	{
 		Temperature = 1.5f;
 	}
+
+	// // Log the current temperature
+	// UE_LOG(LogTemp, Log, TEXT("Current Temperature: %.2f"), Temperature);
 }
 
 void AGraphUntangling::Tick(float DeltaTime)
