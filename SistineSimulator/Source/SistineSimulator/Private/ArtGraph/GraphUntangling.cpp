@@ -3,6 +3,7 @@
 #include "ArtGraph/GraphUntangling.h"
 #include "Kismet/GameplayStatics.h"
 #include "ArtGraph/Untangleable.h"
+#include "DrawDebugHelpers.h"
 
 namespace
 {
@@ -43,14 +44,11 @@ void AGraphUntangling::BeginPlay()
 	InitializeGraphParameters();
 }
 
-// void AGraphUntangling::OnConstruction(const FTransform &Transform)// void AGraphUntangling::OnConstruction(const FTransform &Transform)
-// {
-// 	Super::OnConstruction(Transform);
-// 	// Always call RefreshUntangleableActors on construction,
-// 	// but add a slight delay to ensure actors are fully initialized
-// 	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
-// 													  { RefreshUntangleableActors(); });
-// }
+void AGraphUntangling::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	DrawAdjacencyLines();
+}
 
 void AGraphUntangling::InitializeGraphParameters()
 {
@@ -366,7 +364,7 @@ void AGraphUntangling::DoStep()
 			if (Dist < KINDA_SMALL_NUMBER)
 				continue;
 
-			// > 1000.0: not worth computing
+			// Not worth computing if the distance is too large
 			if (Dist > 1000.f)
 				continue;
 
@@ -459,7 +457,6 @@ void AGraphUntangling::DoStep()
 	}
 
 	// Cool down fast until we reach 1.5, then stay at low temperature
-
 	if (Temperature > 1.5f)
 	{
 		Temperature *= 0.85f;
@@ -477,4 +474,33 @@ void AGraphUntangling::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	DoStep();
+}
+
+void AGraphUntangling::DrawAdjacencyLines()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+		return;
+
+	const float LineThickness = 2.0f;
+	const float LineDuration = 5.0f;
+	const FColor LineColor = FColor::Yellow;
+
+	for (const TArray<AActor*>& NodeConnections : ActorAdjacencyList)
+	{
+		if (NodeConnections.Num() < 2 || !NodeConnections[0])
+			continue;
+
+		const FVector Start = NodeConnections[0]->GetActorLocation();
+
+		for (int32 i = 1; i < NodeConnections.Num(); ++i)
+		{
+			AActor* Neighbor = NodeConnections[i];
+			if (!Neighbor)
+				continue;
+
+			const FVector End = Neighbor->GetActorLocation();
+			DrawDebugLine(World, Start, End, LineColor, false, LineDuration, 0, LineThickness);
+		}
+	}
 }

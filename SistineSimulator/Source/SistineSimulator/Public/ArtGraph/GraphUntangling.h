@@ -42,9 +42,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	// // Called when the actor is constructed or properties are changed in the editor
-	// virtual void OnConstruction(const FTransform &Transform) override;
+	
+	// Called when the actor is constructed or properties are changed in the editor
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
 
@@ -79,6 +79,9 @@ private:
 
 	// Helper to update ActorToIndexMap
 	void UpdateActorToIndexMap();
+
+	// Helper to draw lines between nodes and their neighbors
+	void DrawAdjacencyLines();
 
 	// Map actors to their indices in ActorAdjacencyList for fast lookup
 	UPROPERTY()
