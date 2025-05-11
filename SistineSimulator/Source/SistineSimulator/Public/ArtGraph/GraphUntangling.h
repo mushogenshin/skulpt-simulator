@@ -71,17 +71,17 @@ private:
 	// Helper function to store the found actors in UntangleableAdjacencyList
 	void CastToUntangleableActors();
 
-	// Helper function to format the DebugUntangleableObjects string
-	void FormatDebugUntangleableObjects();
-
-	// Helper function to initialize graph parameters
-	void InitializeGraphParameters();
-
 	// Helper to update ActorToIndexMap
 	void UpdateActorToIndexMap();
 
+	// Helper function to initialize graph parameters
+	void InitializeGraphParameters();
+	
+	// Helper function to format the DebugUntangleableObjects string
+	void FormatDebugUntangleableObjects();
+
 	// Helper to draw lines between nodes and their neighbors
-	void DrawAdjacencyLines();
+	void DrawAdjacencyLines(float LineThickness = 2.0f, bool PersistentLines= false, float LineDuration = 5.0f, FColor LineColor = FColor::Yellow);
 
 	// Map actors to their indices in ActorAdjacencyList for fast lookup
 	UPROPERTY()

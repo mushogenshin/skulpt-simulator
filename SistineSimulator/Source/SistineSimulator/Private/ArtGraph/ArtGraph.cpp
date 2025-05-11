@@ -10,7 +10,7 @@ TArray<TArray<FGameplayTag>> UGraphElement::GetAdjacencyList() const
 
 void UGraphElement::UpdateAdjacencyList()
 {
-	UE_LOG(LogTemp, Display, TEXT("Updating adjacency list for graph %s"), *GetName());
+	UE_LOG(LogTemp, Log, TEXT("UGraphElement::UpdateAdjacencyList: Calculating adjacency list for graph %s"), *GetName());
 	CalculateAdjacencyList();
 	FormatDebugAdjacencyList();
 }

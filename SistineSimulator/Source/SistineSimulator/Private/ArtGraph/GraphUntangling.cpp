@@ -47,23 +47,7 @@ void AGraphUntangling::BeginPlay()
 void AGraphUntangling::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	DrawAdjacencyLines();
-}
-
-void AGraphUntangling::InitializeGraphParameters()
-{
-	KConstant = KConstantUser > 0.f ? KConstantUser : 15.f;
-	KSquared = KConstant * KConstant;
-	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::InitializeGraphParameters: KConstant: %f, KSquared: %f"), KConstant, KSquared);
-
-	NumNodes = ActorAdjacencyList.Num();
-	Temperature = 10.f * FMath::Sqrt(static_cast<float>(NumNodes));
-	Positions.SetNum(NumNodes);
-	Movements.SetNumZeroed(NumNodes);
-
-	UE_LOG(LogTemp, Log,
-	       TEXT("AGraphUntangling::InitializeGraphParameters: NumNodes=%d, Temperature=%.2f, PositionsSize=%d, MovementsSize=%d"),
-	       NumNodes, Temperature, Positions.Num(), Movements.Num());
+	DrawAdjacencyLines(10.0f, false, 3.0f, FColor::Red);
 }
 
 void AGraphUntangling::RefreshUntangleableActors()
@@ -156,7 +140,8 @@ void AGraphUntangling::FindImplementorsWithTags()
 			{
 				if (!Actor)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindImplementorsWithTags: Null actor found in FoundActors array"));
+					UE_LOG(LogTemp, Warning,
+					       TEXT("AGraphUntangling::FindImplementorsWithTags: Null actor found in FoundActors array"));
 					continue;
 				}
 				if (Actor->GetClass()->ImplementsInterface(UUntangleable::StaticClass()))
@@ -184,7 +169,8 @@ void AGraphUntangling::FindImplementorsWithTags()
 				else
 				{
 					UE_LOG(LogTemp, Warning,
-					       TEXT("AGraphUntangling::FindImplementorsWithTags: Actor %s was returned by GetAllActorsWithInterface but doesn't implement Untangleable"
+					       TEXT(
+						       "AGraphUntangling::FindImplementorsWithTags: Actor %s was returned by GetAllActorsWithInterface but doesn't implement Untangleable"
 					       ), *Actor->GetName());
 				}
 			} // End loop through FoundActors
@@ -249,6 +235,37 @@ void AGraphUntangling::CastToUntangleableActors()
 	}
 }
 
+void AGraphUntangling::UpdateActorToIndexMap()
+{
+	ActorToIndexMap.Empty();
+	for (int32 i = 0; i < ActorAdjacencyList.Num(); ++i)
+	{
+		if (ActorAdjacencyList[i].Num() > 0 && ActorAdjacencyList[i][0])
+		{
+			ActorToIndexMap.Add(ActorAdjacencyList[i][0], i);
+		}
+	}
+}
+
+void AGraphUntangling::InitializeGraphParameters()
+{
+	KConstant = KConstantUser > 0.f ? KConstantUser : 15.f;
+	KSquared = KConstant * KConstant;
+	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::InitializeGraphParameters: KConstant: %f, KSquared: %f"), KConstant,
+	       KSquared);
+
+	NumNodes = ActorAdjacencyList.Num();
+	Temperature = 10.f * FMath::Sqrt(static_cast<float>(NumNodes));
+	Positions.SetNum(NumNodes);
+	Movements.SetNumZeroed(NumNodes);
+
+	UE_LOG(LogTemp, Log,
+	       TEXT(
+		       "AGraphUntangling::InitializeGraphParameters: NumNodes=%d, Temperature=%.2f, PositionsSize=%d, MovementsSize=%d"
+	       ),
+	       NumNodes, Temperature, Positions.Num(), Movements.Num());
+}
+
 void AGraphUntangling::FormatDebugUntangleableObjects()
 {
 	DebugAdjacencyList.Empty(); // Clear the debug string
@@ -305,6 +322,34 @@ void AGraphUntangling::FormatDebugUntangleableObjects()
 	}
 }
 
+
+void AGraphUntangling::DrawAdjacencyLines(const float LineThickness, const bool PersistentLines,
+                                          const float LineDuration,
+                                          const FColor LineColor)
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+		return;
+
+	for (const TArray<AActor*>& NodeConnections : ActorAdjacencyList)
+	{
+		if (NodeConnections.Num() < 2 || !NodeConnections[0])
+			continue;
+
+		const FVector Start = NodeConnections[0]->GetActorLocation();
+
+		for (int32 i = 1; i < NodeConnections.Num(); ++i)
+		{
+			const AActor* Neighbor = NodeConnections[i];
+			if (!Neighbor)
+				continue;
+
+			const FVector End = Neighbor->GetActorLocation();
+			DrawDebugLine(World, Start, End, LineColor, PersistentLines, LineDuration, 0, LineThickness);
+		}
+	}
+}
+
 void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -318,18 +363,6 @@ void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 			UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::PostEditChangeProperty: Relevant property changed: %s"),
 			       *PropertyName.ToString());
 			RefreshUntangleableActors();
-		}
-	}
-}
-
-void AGraphUntangling::UpdateActorToIndexMap()
-{
-	ActorToIndexMap.Empty();
-	for (int32 i = 0; i < ActorAdjacencyList.Num(); ++i)
-	{
-		if (ActorAdjacencyList[i].Num() > 0 && ActorAdjacencyList[i][0])
-		{
-			ActorToIndexMap.Add(ActorAdjacencyList[i][0], i);
 		}
 	}
 }
@@ -474,33 +507,5 @@ void AGraphUntangling::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	DoStep();
-}
-
-void AGraphUntangling::DrawAdjacencyLines()
-{
-	UWorld* World = GetWorld();
-	if (!World)
-		return;
-
-	const float LineThickness = 2.0f;
-	const float LineDuration = 5.0f;
-	const FColor LineColor = FColor::Yellow;
-
-	for (const TArray<AActor*>& NodeConnections : ActorAdjacencyList)
-	{
-		if (NodeConnections.Num() < 2 || !NodeConnections[0])
-			continue;
-
-		const FVector Start = NodeConnections[0]->GetActorLocation();
-
-		for (int32 i = 1; i < NodeConnections.Num(); ++i)
-		{
-			AActor* Neighbor = NodeConnections[i];
-			if (!Neighbor)
-				continue;
-
-			const FVector End = Neighbor->GetActorLocation();
-			DrawDebugLine(World, Start, End, LineColor, false, LineDuration, 0, LineThickness);
-		}
-	}
+	DrawAdjacencyLines(3.0f, false, 0.0f);
 }
