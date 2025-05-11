@@ -125,7 +125,7 @@ void AGraphUntangling::FindImplementorsWithTags()
 				       TEXT(
 					       "AGraphUntangling::FindImplementorsWithTags: Encountered invalid tag in TargetGraph's adjacency list. Skipping."
 				       ));
-				InnerArray.Add(nullptr); // Add null to maintain array structure
+				// SAFETY: DO NOT add null pointer for the missing actor here.
 				continue;
 			}
 
@@ -154,7 +154,6 @@ void AGraphUntangling::FindImplementorsWithTags()
 						// Found a matching actor
 						TScriptInterface<IUntangleable> UntangleableActor;
 						UntangleableActor.SetObject(Actor);
-						// UntangleableActor.SetInterface(Cast<IUntangleable>(Actor)); // Safe cast
 
 						InnerArray.Add(UntangleableActor);
 						UE_LOG(LogTemp, Log,
@@ -183,8 +182,7 @@ void AGraphUntangling::FindImplementorsWithTags()
 				       ),
 				       *RequiredPrimaryTag.ToString(), *SecondaryTags.ToString());
 				bConstructionSuccessful = false; // Mark as potentially incomplete
-				// Add a null entry to represent the missing actor in the structure
-				InnerArray.Add(nullptr);
+				// SAFETY: DO NOT add a null pointer for the missing actor here.
 			}
 		} // End loop through NodeConnections (tags)
 
@@ -385,10 +383,10 @@ void AGraphUntangling::DoStep()
 				continue;
 
 			const float Repulsion = KSquared / Dist;
-			FVector Dir = Delta / Dist;
+			FVector Direction = Delta / Dist;
 			// Apply repulsion forces for both nodes
-			Movements[v] += Dir * Repulsion;
-			Movements[u] -= Dir * Repulsion;
+			Movements[v] += Direction * Repulsion;
+			Movements[u] -= Direction * Repulsion;
 
 			// Debug print for repulsion
 			const AActor* ActorV = (ActorAdjacencyList[v].Num() > 0) ? ActorAdjacencyList[v][0] : nullptr;
@@ -429,12 +427,12 @@ void AGraphUntangling::DoStep()
 				continue; // Only process each edge once
 
 			FVector Delta = Positions[v] - Positions[NeighborIdx];
-			const float Dist = Delta.Size();
-			if (Dist < KINDA_SMALL_NUMBER)
+			const float Distance = Delta.Size();
+			if (Distance < KINDA_SMALL_NUMBER)
 				continue;
 
-			const float Attraction = (Dist * Dist) / KConstant;
-			FVector Dir = Delta / Dist;
+			const float Attraction = (Distance * Distance) / KConstant;
+			FVector Dir = Delta / Distance;
 			// Apply attraction forces for both nodes
 			Movements[v] -= Dir * Attraction;
 			Movements[NeighborIdx] += Dir * Attraction;
@@ -445,7 +443,7 @@ void AGraphUntangling::DoStep()
 			if (ActorV && ActorN)
 			{
 				FString Msg = FString::Printf(TEXT("Attraction: %s <-> %s | Dist: %.2f | Attr: %.2f"),
-				                              *ActorV->GetName(), *ActorN->GetName(), Dist, Attraction);
+				                              *ActorV->GetName(), *ActorN->GetName(), Distance, Attraction);
 				if (GEngine)
 					GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Orange, Msg);
 			}
