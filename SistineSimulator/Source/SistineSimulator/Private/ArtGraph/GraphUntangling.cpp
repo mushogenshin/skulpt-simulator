@@ -56,7 +56,7 @@ void AGraphUntangling::InitializeGraphParameters()
 {
 	KConstant = KConstantUser > 0.f ? KConstantUser : 15.f;
 	KSquared = KConstant * KConstant;
-	UE_LOG(LogTemp, Log, TEXT("KConstant: %f, KSquared: %f"), KConstant, KSquared);
+	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::InitializeGraphParameters: KConstant: %f, KSquared: %f"), KConstant, KSquared);
 
 	NumNodes = ActorAdjacencyList.Num();
 	Temperature = 10.f * FMath::Sqrt(static_cast<float>(NumNodes));
@@ -64,7 +64,7 @@ void AGraphUntangling::InitializeGraphParameters()
 	Movements.SetNumZeroed(NumNodes);
 
 	UE_LOG(LogTemp, Log,
-	       TEXT("Graph Parameters Initialized: NumNodes=%d, Temperature=%.2f, PositionsSize=%d, MovementsSize=%d"),
+	       TEXT("AGraphUntangling::InitializeGraphParameters: NumNodes=%d, Temperature=%.2f, PositionsSize=%d, MovementsSize=%d"),
 	       NumNodes, Temperature, Positions.Num(), Movements.Num());
 }
 
@@ -158,7 +158,7 @@ void AGraphUntangling::FindImplementorsWithTags()
 			{
 				if (!Actor)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Null actor found in FoundActors array"));
+					UE_LOG(LogTemp, Warning, TEXT("AGraphUntangling::FindImplementorsWithTags: Null actor found in FoundActors array"));
 					continue;
 				}
 				if (Actor->GetClass()->ImplementsInterface(UUntangleable::StaticClass()))
@@ -174,8 +174,10 @@ void AGraphUntangling::FindImplementorsWithTags()
 						// UntangleableActor.SetInterface(Cast<IUntangleable>(Actor)); // Safe cast
 
 						InnerArray.Add(UntangleableActor);
-						UE_LOG(LogTemp, Display,
-						       TEXT("Matched Actor %s for Primary Tag %s (Required Secondary Tags: %s)"),
+						UE_LOG(LogTemp, Log,
+						       TEXT(
+							       "AGraphUntangling::FindImplementorsWithTags: Matched Actor %s for Primary Tag %s (Required Secondary Tags: %s)"
+						       ),
 						       *Actor->GetName(), *RequiredPrimaryTag.ToString(), *SecondaryTags.ToString());
 						bFoundMatchingActor = true;
 						break; // Stop searching for actors for this specific RequiredPrimaryTag
@@ -184,7 +186,7 @@ void AGraphUntangling::FindImplementorsWithTags()
 				else
 				{
 					UE_LOG(LogTemp, Warning,
-					       TEXT("Actor %s was returned by GetAllActorsWithInterface but doesn't implement Untangleable"
+					       TEXT("AGraphUntangling::FindImplementorsWithTags: Actor %s was returned by GetAllActorsWithInterface but doesn't implement Untangleable"
 					       ), *Actor->GetName());
 				}
 			} // End loop through FoundActors
