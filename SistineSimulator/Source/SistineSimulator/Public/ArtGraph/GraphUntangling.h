@@ -46,11 +46,15 @@ protected:
 	// Called when the actor is constructed or properties are changed in the editor
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
+	// virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent *PreviewMesh;
+
+	// Map actors to their indices in ActorAdjacencyList for fast lookup
+	UPROPERTY()
+	TMap<AActor*, int32> ActorToIndexMap;
 	
 	// Debug property to display the constructed UntangleableObjects list in the editor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArtGraph", meta = (AllowPrivateAccess = "true", MultiLine = true))
@@ -83,9 +87,6 @@ private:
 	// Helper to draw lines between nodes and their neighbors
 	void DrawAdjacencyLines(float LineThickness = 2.0f, bool PersistentLines= false, float LineDuration = 5.0f, FColor LineColor = FColor::Yellow);
 
-	// Map actors to their indices in ActorAdjacencyList for fast lookup
-	UPROPERTY()
-	TMap<AActor*, int32> ActorToIndexMap;
 
 public:
 	// Called every frame

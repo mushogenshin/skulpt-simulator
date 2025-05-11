@@ -350,23 +350,6 @@ void AGraphUntangling::DrawAdjacencyLines(const float LineThickness, const bool 
 	}
 }
 
-void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	if (PropertyChangedEvent.Property)
-	{
-		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(AGraphUntangling, TargetedGraph) || PropertyName ==
-			GET_MEMBER_NAME_CHECKED(AGraphUntangling, SecondaryTags))
-		{
-			UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::PostEditChangeProperty: Relevant property changed: %s"),
-			       *PropertyName.ToString());
-			RefreshUntangleableActors();
-		}
-	}
-}
-
 void AGraphUntangling::DoStep()
 {
 	// Gather current positions
@@ -403,6 +386,7 @@ void AGraphUntangling::DoStep()
 
 			const float Repulsion = KSquared / Dist;
 			FVector Dir = Delta / Dist;
+			// Apply repulsion forces for both nodes
 			Movements[v] += Dir * Repulsion;
 			Movements[u] -= Dir * Repulsion;
 
@@ -451,6 +435,7 @@ void AGraphUntangling::DoStep()
 
 			const float Attraction = (Dist * Dist) / KConstant;
 			FVector Dir = Delta / Dist;
+			// Apply attraction forces for both nodes
 			Movements[v] -= Dir * Attraction;
 			Movements[NeighborIdx] += Dir * Attraction;
 
@@ -467,7 +452,7 @@ void AGraphUntangling::DoStep()
 		}
 	}
 
-	// Cap movement by temperature and apply
+	// Cap movement by temperature and apply to actors
 	for (int32 v = 0; v < NumNodes; ++v)
 	{
 		const float MoveNorm = Movements[v].Size();
@@ -509,3 +494,20 @@ void AGraphUntangling::Tick(const float DeltaTime)
 	DoStep();
 	DrawAdjacencyLines(3.0f, false, 0.0f);
 }
+
+// void AGraphUntangling::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+// {
+// 	Super::PostEditChangeProperty(PropertyChangedEvent);
+//
+// 	if (PropertyChangedEvent.Property)
+// 	{
+// 		const FName PropertyName = PropertyChangedEvent.Property->GetFName();
+// 		if (PropertyName == GET_MEMBER_NAME_CHECKED(AGraphUntangling, TargetedGraph) || PropertyName ==
+// 			GET_MEMBER_NAME_CHECKED(AGraphUntangling, SecondaryTags))
+// 		{
+// 			UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::PostEditChangeProperty: Relevant property changed: %s"),
+// 				   *PropertyName.ToString());
+// 			RefreshUntangleableActors();
+// 		}
+// 	}
+// }
