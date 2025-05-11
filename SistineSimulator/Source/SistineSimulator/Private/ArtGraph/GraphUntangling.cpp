@@ -71,33 +71,7 @@ void AGraphUntangling::RefreshUntangleableActors()
 {
 	UE_LOG(LogTemp, Log, TEXT("AGraphUntangling::RefreshUntangleableActors."));
 	FindImplementorsWithTags();
-
-	// Clear the existing ActorAdjacencyList
-	ActorAdjacencyList.Empty();
-
-	// Populate ActorAdjacencyList based on UntangleableAdjacencyList
-	for (const TArray<TScriptInterface<IUntangleable>> &UntangleableInnerList : UntangleableAdjacencyList)
-	{
-		TArray<AActor *> ActorInnerList;
-		for (const TScriptInterface<IUntangleable> &UntangleableItem : UntangleableInnerList)
-		{
-			if (UntangleableItem.GetObject())
-			{
-				AActor *ActorItem = Cast<AActor>(UntangleableItem.GetObject());
-				if (ActorItem)
-				{
-					ActorInnerList.Add(ActorItem);
-				}
-				else
-				{
-					// Warn if the cast fails, though an IUntangleable should ideally be an AActor or derived from it
-					UE_LOG(LogTemp, Warning, TEXT("RefreshUntangleableActors: UntangleableItem %s is not an AActor."), *UntangleableItem.GetObject()->GetName());
-				}
-			}
-		}
-		ActorAdjacencyList.Add(ActorInnerList);
-	}
-
+	CastToUntangleableActors();
 	FormatDebugUntangleableObjects();
 }
 
@@ -236,6 +210,35 @@ void AGraphUntangling::FindImplementorsWithTags()
 			   TEXT(
 				   "AGraphUntangling::FindImplementorsWithTags: Finished constructing UntangleableAdjacencyList for graph %s, but some actors were missing."),
 			   *TargetedGraph->GetName());
+	}
+}
+
+void AGraphUntangling::CastToUntangleableActors()
+{
+	// Clear the existing ActorAdjacencyList
+	ActorAdjacencyList.Empty();
+
+	// Populate ActorAdjacencyList based on UntangleableAdjacencyList
+	for (const TArray<TScriptInterface<IUntangleable>> &UntangleableInnerList : UntangleableAdjacencyList)
+	{
+		TArray<AActor *> ActorInnerList;
+		for (const TScriptInterface<IUntangleable> &UntangleableItem : UntangleableInnerList)
+		{
+			if (UntangleableItem.GetObject())
+			{
+				AActor *ActorItem = Cast<AActor>(UntangleableItem.GetObject());
+				if (ActorItem)
+				{
+					ActorInnerList.Add(ActorItem);
+				}
+				else
+				{
+					// Warn if the cast fails, though an IUntangleable should ideally be an AActor or derived from it
+					UE_LOG(LogTemp, Warning, TEXT("RefreshUntangleableActors: UntangleableItem %s is not an AActor."), *UntangleableItem.GetObject()->GetName());
+				}
+			}
+		}
+		ActorAdjacencyList.Add(ActorInnerList);
 	}
 }
 

@@ -65,6 +65,9 @@ private:
 	// Helper function to find actors implementing Untangleable
 	void FindImplementorsWithTags();
 
+	// Helper function to store the found actors in UntangleableAdjacencyList
+	void CastToUntangleableActors();
+
 	// Helper function to format the DebugUntangleableObjects string
 	void FormatDebugUntangleableObjects();
 
@@ -78,6 +81,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Fruchterman-Reingold step for current ActorAdjacencyList
+	// A single Fruchterman-Reingold step for current ActorAdjacencyList
 	void DoStep();
 };
