@@ -49,6 +49,9 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
 
 private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent *PreviewMesh;
+	
 	// Debug property to display the constructed UntangleableObjects list in the editor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArtGraph", meta = (AllowPrivateAccess = "true", MultiLine = true))
 	FString DebugAdjacencyList;
@@ -74,8 +77,12 @@ private:
 	// Helper function to initialize graph parameters
 	void InitializeGraphParameters();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent *PreviewMesh;
+	// Helper to update ActorToIndexMap
+	void UpdateActorToIndexMap();
+
+	// Map actors to their indices in ActorAdjacencyList for fast lookup
+	UPROPERTY()
+	TMap<AActor*, int32> ActorToIndexMap;
 
 public:
 	// Called every frame
@@ -84,3 +91,4 @@ public:
 	// A single Fruchterman-Reingold step for current ActorAdjacencyList
 	void DoStep();
 };
+
