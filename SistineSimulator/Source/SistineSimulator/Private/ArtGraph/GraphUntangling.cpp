@@ -391,7 +391,7 @@ void AGraphUntangling::DoStep()
 			// Debug print for repulsion
 			const AActor* ActorV = (ActorAdjacencyList[v].Num() > 0) ? ActorAdjacencyList[v][0] : nullptr;
 			const AActor* ActorU = (ActorAdjacencyList[u].Num() > 0) ? ActorAdjacencyList[u][0] : nullptr;
-			if (ActorV && ActorU)
+			if (bDebugForceMoveValues && ActorV && ActorU)
 			{
 				FString Msg = FString::Printf(TEXT("Repulsion: %s <-> %s | Dist: %.2f | Rep: %.2f"),
 				                              *ActorV->GetName(), *ActorU->GetName(), Dist, Repulsion);
@@ -440,7 +440,7 @@ void AGraphUntangling::DoStep()
 			// Debug print for attraction
 			const AActor* ActorV = NodeActor;
 			const AActor* ActorN = NeighborActor;
-			if (ActorV && ActorN)
+			if (bDebugForceMoveValues && ActorV && ActorN)
 			{
 				FString Msg = FString::Printf(TEXT("Attraction: %s <-> %s | Dist: %.2f | Attr: %.2f"),
 				                              *ActorV->GetName(), *ActorN->GetName(), Distance, Attraction);
@@ -465,10 +465,13 @@ void AGraphUntangling::DoStep()
 			NodeActor->SetActorLocation(NodeActor->GetActorLocation() + CappedMove);
 
 			// Debug print for movement
-			FString Msg = FString::Printf(TEXT("Move: %s | Δ: (%.2f, %.2f, %.2f) | Norm: %.2f"),
-			                              *NodeActor->GetName(), CappedMove.X, CappedMove.Y, CappedMove.Z, CappedNorm);
-			if (GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, Msg);
+			if (bDebugForceMoveValues)
+			{
+				FString Msg = FString::Printf(TEXT("Move: %s | Δ: (%.2f, %.2f, %.2f) | Norm: %.2f"),
+				                              *NodeActor->GetName(), CappedMove.X, CappedMove.Y, CappedMove.Z, CappedNorm);
+				if (GEngine)
+					GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, Msg);
+			}
 		}
 	}
 
@@ -509,3 +512,4 @@ void AGraphUntangling::Tick(const float DeltaTime)
 // 		}
 // 	}
 // }
+

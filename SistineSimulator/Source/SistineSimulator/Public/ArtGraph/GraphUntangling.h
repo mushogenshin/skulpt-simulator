@@ -67,6 +67,10 @@ private:
 		meta = (AllowPrivateAccess = "true", MultiLine = true))
 	FString DebugAdjacencyList;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph", meta=(
+		AllowPrivateAccess = "true"))
+	bool bDebugForceMoveValues = false;
+
 	float KConstant;
 	float KSquared;
 	float Temperature; // maximum allowable movement, used for cooling mechanism
