@@ -21,10 +21,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph")
 	TObjectPtr<UGraphElement> TargetedGraph;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph", meta = (ToolTip = "Additional tags to filter actors by. Actors must have the primary tag from the graph AND all of these secondary tags."))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph",
+		meta = (ToolTip =
+			"Additional tags to filter actors by. Actors must have the primary tag from the graph AND all of these secondary tags to match."
+		))
 	FGameplayTagContainer SecondaryTags;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph", meta = (ToolTip = "The K constant used in the Fruchterman-Reingold algorithm."))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArtGraph",
+		meta = (DisplayName = "Fruchterman-Reingold K Constant", ToolTip =
+			"This constant determines the distance between nodes to stabilize towards."
+		))
 	float KConstantUser;
 
 	// Array of arrays of objects that implement the Untangleable interface, structured like an adjacency list.
@@ -33,7 +39,7 @@ public:
 
 	// Array of arrays of AActor pointers, mirroring UntangleableAdjacencyList.
 	// The first element of each inner array corresponds to a node actor, and the rest are its neighbor actors.
-	TArray<TArray<AActor *>> ActorAdjacencyList;
+	TArray<TArray<AActor*>> ActorAdjacencyList;
 
 	// Function to manually refresh the UntangleableObjects list
 	UFUNCTION(CallInEditor, Category = "ArtGraph", meta = (DisplayName = "Refresh Untangleable Actors"))
@@ -42,7 +48,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+
 	// Called when the actor is constructed or properties are changed in the editor
 	virtual void OnConstruction(const FTransform& Transform) override;
 
@@ -50,14 +56,15 @@ protected:
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent *PreviewMesh;
+	UStaticMeshComponent* PreviewMesh;
 
 	// Map actors to their indices in ActorAdjacencyList for fast lookup
 	UPROPERTY()
 	TMap<AActor*, int32> ActorToIndexMap;
-	
+
 	// Debug property to display the constructed UntangleableObjects list in the editor
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArtGraph", meta = (AllowPrivateAccess = "true", MultiLine = true))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ArtGraph",
+		meta = (AllowPrivateAccess = "true", MultiLine = true))
 	FString DebugAdjacencyList;
 
 	float KConstant;
@@ -80,13 +87,13 @@ private:
 
 	// Helper function to initialize graph parameters
 	void InitializeGraphParameters();
-	
+
 	// Helper function to format the DebugUntangleableObjects string
 	void FormatDebugUntangleableObjects();
 
 	// Helper to draw lines between nodes and their neighbors
-	void DrawAdjacencyLines(float LineThickness = 2.0f, bool PersistentLines= false, float LineDuration = 5.0f, FColor LineColor = FColor::Yellow);
-
+	void DrawAdjacencyLines(float LineThickness = 2.0f, bool PersistentLines = false, float LineDuration = 5.0f,
+	                        FColor LineColor = FColor::Yellow);
 
 public:
 	// Called every frame
@@ -95,4 +102,3 @@ public:
 	// A single Fruchterman-Reingold step for current ActorAdjacencyList
 	void DoStep();
 };
-
