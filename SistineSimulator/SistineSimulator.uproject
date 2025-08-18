@@ -40,6 +40,10 @@
 		{
 			"Name": "ForceDirected",
 			"Enabled": true
+		},
+		{
+			"Name": "ForceDirectedLayout",
+			"Enabled": true
 		}
 	]
 }
