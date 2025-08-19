@@ -7,7 +7,7 @@
 #include "VertexComponent.generated.h"
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class SISTINESIMULATOR_API UVertexComponent : public UActorComponent
+class SISTINESIMULATORGAME_API UVertexComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

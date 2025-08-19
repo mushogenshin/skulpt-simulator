@@ -5,12 +5,17 @@
 	"Description": "",
 	"Modules": [
 		{
-			"Name": "SistineSimulator",
+			"Name": "SistineSimulatorGame",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine"
 			]
+		},
+		{
+			"Name": "SistineSimulatorEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [

@@ -15,7 +15,7 @@ class UUntangleable : public UInterface
 /**
  * Interface for objects that can have their position managed by the UntanglingLayout.
  */
-class SISTINESIMULATOR_API IUntangleable
+class SISTINESIMULATORGAME_API IUntangleable
 {
 	GENERATED_BODY()
 
@@ -23,5 +23,5 @@ class SISTINESIMULATOR_API IUntangleable
 public:
 	/** Returns the Gameplay Tags associated with this object. */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Untangleable")
-	FGameplayTagContainer GetTags() const; // Changed from GetTag to GetTags
+	FGameplayTagContainer GetTags() const; 
 };

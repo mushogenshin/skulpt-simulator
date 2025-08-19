@@ -10,7 +10,7 @@
 #include "GraphUntangling.generated.h"
 
 UCLASS()
-class SISTINESIMULATOR_API AGraphUntangling : public AActor
+class SISTINESIMULATORGAME_API AGraphUntangling : public AActor
 {
 	GENERATED_BODY()
 

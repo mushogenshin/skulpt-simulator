@@ -1,10 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 using UnrealBuildTool;
 
-public class SistineSimulator : ModuleRules
+public class SistineSimulatorGame : ModuleRules
 {
-	public SistineSimulator(ReadOnlyTargetRules Target) : base(Target)
+	public SistineSimulatorGame(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	

@@ -12,7 +12,7 @@ class UGraphElement;
  * This is used to represent the connections between different elements in the art graph.
  */
 USTRUCT(BlueprintType)
-struct SISTINESIMULATOR_API FGraphEdge
+struct SISTINESIMULATORGAME_API FGraphEdge
 {
 	GENERATED_BODY()
 
@@ -28,7 +28,7 @@ struct SISTINESIMULATOR_API FGraphEdge
  * This class contains a tag and a list of edges within the graph.
  */
 UCLASS()
-class SISTINESIMULATOR_API UGraphElement : public UDataAsset
+class SISTINESIMULATORGAME_API UGraphElement : public UDataAsset
 {
 	GENERATED_BODY()
 
@@ -51,18 +51,18 @@ public:
 	// Get all elements referenced by this graph
 	TArray<UGraphElement*> GetReferencedElements() const;
 
+	// Debug property to display the cached adjacency list in the editor
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug", meta = (MultiLine = true))
+	FString DebugAdjacencyList;
+
 protected:
+
 	// Override PostEditChangeProperty to update the adjacency list when properties change
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 private:
 	// Cache for the adjacency list
 	TArray<TArray<FGameplayTag>> CachedAdjacencyList;
-
-	// Debug property to display the cached adjacency list in the editor
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Debug",
-		meta = (AllowPrivateAccess = "true", MultiLine = true))
-	FString DebugAdjacencyList;
 
 	// Helper function to calculate the adjacency list and store it in CachedAdjacencyList
 	void CalculateAdjacencyList();

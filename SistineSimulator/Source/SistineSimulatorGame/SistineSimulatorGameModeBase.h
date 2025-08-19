@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class SISTINESIMULATOR_API ASistineSimulatorGameModeBase : public AGameModeBase
+class SISTINESIMULATORGAME_API ASistineSimulatorGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	

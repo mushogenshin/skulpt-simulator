@@ -12,7 +12,7 @@ class UArtGraph;
  * A subsystem to manage and notify graphs when their elements change.
  */
 UCLASS()
-class SISTINESIMULATOR_API UArtGraphSubsystem : public UEngineSubsystem
+class SISTINESIMULATORGAME_API UArtGraphSubsystem : public UEngineSubsystem
 {
 	GENERATED_BODY()
 
