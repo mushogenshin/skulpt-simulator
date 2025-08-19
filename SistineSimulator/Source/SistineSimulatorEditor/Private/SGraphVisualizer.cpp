@@ -1,16 +1,19 @@
-#include "SGraphVisualizer.h" 
+#include "SGraphVisualizer.h"
 #include "Widgets/SCanvas.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Rendering/DrawElements.h"
+
+const FMargin SSGraphVisualizer::Margin = FMargin(120.0f, 10.0f, 0.0f, 0.0f);
 
 void SSGraphVisualizer::Construct(const FArguments& InArgs)
 {
 	GraphElementPtr = InArgs._GraphElement;
 
 	ChildSlot
-	[
-		SAssignNew(NodeCanvas, SCanvas)
-	];
+		.Padding(Margin)
+		[
+			SAssignNew(NodeCanvas, SCanvas)
+		];
 
 	RebuildGraph();
 }
@@ -22,7 +25,6 @@ void SSGraphVisualizer::RebuildGraph()
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("SSGraphVisualizer::RebuildGraph: Rebuilding graph for element %s"), *GraphElementPtr->GetName());
 	NodeCanvas->ClearChildren();
 	NodePositions.Empty();
 
@@ -31,17 +33,17 @@ void SSGraphVisualizer::RebuildGraph()
 	if (AdjacencyList.IsEmpty())
 	{
 		NodeCanvas->AddSlot()
-			.Position(FVector2D(10, 10))
-			.Size(FVector2D(300, 20))
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(TEXT("Graph is empty or has not been processed.")))
-			];
+		          .Position(FVector2D(10, 10))
+		          .Size(FVector2D(300, 20))
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(TEXT("Graph is empty or has not been processed.")))
+		];
 		return;
 	}
 
 	// --- Calculate Node Positions (arranged in a circle) ---
-	const FVector2D Center(160.0f, 160.0f);
+	const FVector2D Center(160.0f + Margin.Left, 160.0f + Margin.Top);
 	const int32 NumNodes = AdjacencyList.Num();
 	const float AngleStep = (2.0f * PI) / NumNodes;
 
@@ -51,25 +53,38 @@ void SSGraphVisualizer::RebuildGraph()
 		const FGameplayTag& NodeTag = AdjacencyList[i][0];
 		const float Angle = i * AngleStep;
 		const FVector2D NodePosition = Center + FVector2D(Radius * FMath::Cos(Angle), Radius * FMath::Sin(Angle));
-		
+
 		NodePositions.Add(NodeTag, NodePosition);
+
+		const FString NodeText = NodeTag.ToString();
+		// A rough estimation for dynamic width. You may need to adjust the character width multiplier.
+		constexpr float EstimatedCharWidth = 7.5f;
+		constexpr float Padding = 10.0f;
+		const float TextBlockWidth = (NodeText.Len() * EstimatedCharWidth) + Padding;
+		constexpr float TextBlockHeight = 20.0f;
 
 		// Add a text block for each node to the canvas
 		NodeCanvas->AddSlot()
-			.Position(NodePosition - FVector2D(60, 10)) // Center the text block
-			.Size(FVector2D(120, 20))
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(NodeTag.ToString()))
-				.Justification(ETextJustify::Center)
-			];
+		          .Position(NodePosition - FVector2D(TextBlockWidth / 2.0f, TextBlockHeight) - FVector2D(
+			          Margin.Left, Margin.Top))
+		          // Center the text block then adjust its position to account for the margin, with some height offset for legibility
+		          .Size(FVector2D(TextBlockWidth, TextBlockHeight))
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(NodeText))
+			.Justification(ETextJustify::Center)
+		];
 	}
 }
 
-int32 SSGraphVisualizer::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+int32 SSGraphVisualizer::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
+                                 const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
+                                 const int32 LayerId, const FWidgetStyle& InWidgetStyle,
+                                 const bool bParentEnabled) const
 {
 	// First, let the base class paint its children (the text blocks)
-	const int32 NewLayerId = SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
+	const int32 NewLayerId = SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId,
+	                                                  InWidgetStyle, bParentEnabled);
 
 	if (!GraphElementPtr.IsValid())
 	{
@@ -112,7 +127,7 @@ int32 SSGraphVisualizer::OnPaint(const FPaintArgs& Args, const FGeometry& Allott
 					ESlateDrawEffect::None,
 					FLinearColor::White,
 					true, // bAntialias
-					1.0f  // Thickness
+					1.0f // Thickness
 				);
 			}
 		}

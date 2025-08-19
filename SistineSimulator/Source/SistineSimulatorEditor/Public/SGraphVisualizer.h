@@ -30,5 +30,7 @@ private:
 
 	// The canvas panel used to position the node widgets
 	TSharedPtr<class SCanvas> NodeCanvas;
-};
 
+	// Constant for margin
+	static const FMargin Margin;
+};
